@@ -1,0 +1,740 @@
+<title>Programação SM&A</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:#f9f7f4;
+    --surface:#ffffff;
+    --surface-2:#f4f0ea;
+    --text-primary:#0a0a0a;
+    --text-secondary:#5b514c;
+    --text-muted:#8f8279;
+    --border:rgba(10,10,10,0.10);
+    --gridline:#e9e2da;
+    --baseline:#cfc3b7;
+    --accent:#f7941e;
+    --accent-ink:#9a5410;
+    --info:#2a78d6;
+    --series-1:#f7941e;
+    --good:#0ca30c;
+    --warning:#fab219;
+    --warning-ink:#7a5100;
+    --critical:#d03b3b;
+    --side-bg:#0a0a0a;
+    --side-bg-2:#1d1712;
+    --side-text:#ffffff;
+    --side-text-muted:#b7aaa0;
+    --side-border:rgba(255,255,255,0.08);
+    --radius:12px;
+    --shadow:0 1px 2px rgba(10,10,10,0.04), 0 8px 20px -12px rgba(10,10,10,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:#0a0a0a;
+      --surface:#17130f;
+      --surface-2:#201a15;
+      --text-primary:#ffffff;
+      --text-secondary:#cdc3ba;
+      --text-muted:#a89b8f;
+      --border:rgba(255,255,255,0.10);
+      --gridline:#2c2620;
+      --baseline:#4a4038;
+      --accent:#f7941e;
+      --accent-ink:#f7941e;
+      --info:#3987e5;
+      --series-1:#ffab3d;
+      --good:#0ca30c;
+      --warning:#fab219;
+      --warning-ink:#fab219;
+      --critical:#e66767;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:#0a0a0a;
+    --surface:#17130f;
+    --surface-2:#201a15;
+    --text-primary:#ffffff;
+    --text-secondary:#cdc3ba;
+    --text-muted:#a89b8f;
+    --border:rgba(255,255,255,0.10);
+    --gridline:#2c2620;
+    --baseline:#4a4038;
+    --accent:#f7941e;
+    --accent-ink:#f7941e;
+    --info:#3987e5;
+    --series-1:#ffab3d;
+    --good:#0ca30c;
+    --warning:#fab219;
+    --warning-ink:#fab219;
+    --critical:#e66767;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--page);
+    color:var(--text-primary);
+    font-family:'Inter',system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{text-wrap:balance;}
+  .app{
+    display:flex;
+    min-height:100%;
+    align-items:flex-start;
+  }
+  .sidebar{
+    flex:0 0 250px;
+    background:linear-gradient(180deg,var(--side-bg),var(--side-bg-2));
+    color:var(--side-text);
+    min-height:100vh;
+    padding:22px 18px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+    position:sticky;
+    top:0;
+  }
+  .brand{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;}
+  .brand-lion{width:100%;max-width:190px;height:auto;}
+  .brand-sub{font-size:11px;color:var(--side-text-muted);letter-spacing:.03em;margin-top:2px;}
+  .filter-group{display:flex;flex-direction:column;gap:8px;}
+  .filter-label{
+    font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--side-text-muted);
+  }
+  .filter-group select, .filter-group input[type="date"]{
+    width:100%;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--side-border);
+    color:var(--side-text);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:13px;
+    font-family:inherit;
+    outline:none;
+  }
+  .filter-group select:focus, .filter-group input[type="date"]:focus{
+    border-color:var(--accent);
+  }
+  .filter-group select option{color:#111;}
+  .reset-btn{
+    margin-top:2px;
+    background:transparent;
+    border:1px solid var(--side-border);
+    color:var(--side-text-muted);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:12px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .reset-btn:hover{color:var(--side-text);border-color:rgba(255,255,255,0.2);}
+  .reset-btn.is-secondary{background:transparent;border-color:transparent;color:var(--side-text-muted);text-decoration:underline;text-underline-offset:2px;padding:4px 10px;}
+  .reset-btn.is-secondary:hover{color:var(--accent);}
+  #meta-week-badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--accent-ink);background:color-mix(in srgb, var(--accent) 16%, transparent);padding:2px 8px;border-radius:999px;vertical-align:middle;}
+  #meta-week-badge:empty{display:none;}
+  .sidebar-footer{margin-top:auto;font-size:11px;color:var(--side-text-muted);line-height:1.5;padding-top:10px;border-top:1px solid var(--side-border);text-align:center;}
+
+  .content{flex:1 1 0%;min-width:0;width:100%;padding:26px 28px 48px;display:flex;flex-direction:column;gap:20px;}
+  .topbar{display:flex;flex-direction:column;gap:4px;}
+  .topbar h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-.01em;}
+  .topbar .meta{font-size:13px;color:var(--text-secondary);}
+  .topbar .meta b{color:var(--text-primary);font-variant-numeric:tabular-nums;}
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:12px;
+  }
+  .kpi{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:15px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:0;
+  }
+  .kpi .label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);}
+  .kpi .value{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+  .kpi .sub{font-size:11.5px;color:var(--text-muted);}
+  .kpi.tone-accent .value{color:var(--accent-ink);}
+  .kpi.tone-good .value{color:var(--good);}
+  .kpi.tone-critical .value{color:var(--critical);}
+  .kpi.tone-warning .value{color:var(--warning-ink);}
+  .kpi.tone-neutral .value{color:var(--text-primary);}
+
+  .charts{
+    display:grid;
+    grid-template-columns:1.35fr 1fr;
+    gap:16px;
+    align-items:stretch;
+  }
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 18px 14px;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+  .panel-head h2{margin:0;font-size:14.5px;font-weight:700;}
+  .panel-head .hint{font-size:11.5px;color:var(--text-muted);}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 8px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-secondary);}
+  .legend-dot{width:9px;height:9px;border-radius:2px;flex:none;}
+  .legend-line{width:16px;height:0;border-top:2px dashed var(--text-muted);flex:none;}
+  .chart-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;min-width:0;}
+  .chart-scroll svg{display:block;overflow:visible;}
+  .chart-caption{font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;}
+  .empty-note{font-size:12.5px;color:var(--text-muted);padding:20px 4px;}
+
+  .hbar-list{display:flex;flex-direction:column;gap:12px;padding:4px 0 2px;}
+  .hbar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;}
+  .hbar-label{grid-column:1 / -1;font-size:12.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;}
+  .hbar-track{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden;}
+  .hbar-fill{height:100%;border-radius:5px;background:var(--series-1);min-width:3px;}
+  .hbar-value{font-size:12.5px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;text-align:right;min-width:1.6em;}
+
+  .tooltip{
+    position:fixed;
+    pointer-events:none;
+    background:var(--text-primary);
+    color:var(--page);
+    font-size:11.5px;
+    padding:6px 9px;
+    border-radius:6px;
+    line-height:1.4;
+    z-index:50;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    max-width:220px;
+    display:none;
+  }
+  :root:not([data-theme="light"]) .tooltip{background:#ffffff;color:#0b0b0b;}
+  :root[data-theme="dark"] .tooltip{background:#ffffff;color:#0b0b0b;}
+
+  .table-wrap{overflow-x:auto;min-width:0;}
+  table.obs-table{width:100%;border-collapse:collapse;font-size:12.8px;min-width:640px;}
+  table.obs-table th{
+    text-align:left;font-size:10.8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  table.obs-table td{padding:9px 10px;border-bottom:1px solid var(--gridline);vertical-align:top;color:var(--text-secondary);}
+  table.obs-table td.local-cell{font-weight:700;color:var(--text-primary);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  table.obs-table td.horas-cell{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-primary);white-space:nowrap;}
+  table.obs-table tr:last-child td{border-bottom:none;}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;}
+  .chip.chip-critical{background:color-mix(in srgb, var(--critical) 16%, transparent);color:var(--critical);}
+  .chip.chip-critical::before{background:var(--critical);}
+  .chip.chip-warning{background:color-mix(in srgb, var(--warning) 22%, transparent);color:var(--warning-ink);}
+  .chip.chip-warning::before{background:var(--warning);}
+  .chip.chip-good{background:color-mix(in srgb, var(--good) 16%, transparent);color:var(--good);}
+  .chip.chip-good::before{background:var(--good);}
+  .chip.chip-neutral{background:color-mix(in srgb, var(--info) 14%, transparent);color:var(--info);}
+  .chip.chip-neutral::before{background:var(--info);}
+
+  .axis-label{fill:var(--text-muted);font-size:10.5px;}
+  .bar-value-label{fill:var(--text-secondary);font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;
+    paint-order:stroke fill;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round;}
+  .grid-line{stroke:var(--gridline);stroke-width:1;}
+  .baseline-line{stroke:var(--baseline);stroke-width:1;}
+
+  @media (max-width: 980px){
+    .app{flex-direction:column;}
+    .sidebar{position:relative;flex:0 0 auto;width:100%;min-height:0;}
+    .kpis{grid-template-columns:repeat(3,1fr);}
+    .charts{grid-template-columns:1fr;}
+    .content{padding:18px 16px 36px;}
+  }
+  @media (max-width: 560px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="brand-lion" src="data:image/png;base64,__LION_B64__" alt="AngloGold Ashanti">
+      <div class="brand-sub">Programação de Atividades</div>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Período — início</label>
+      <input type="date" id="f-date-start">
+      <label class="filter-label">Período — fim</label>
+      <input type="date" id="f-date-end">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Local</label>
+      <select id="f-local"><option value="">Todos</option></select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Situação do prazo</label>
+      <select id="f-situacao"><option value="">Todos</option></select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Atividade</label>
+      <select id="f-atividade"><option value="">Todos</option></select>
+    </div>
+
+    <button class="reset-btn" id="btn-reset">Semana atual</button>
+    <button class="reset-btn is-secondary" id="btn-full-period">Ver período completo</button>
+
+    <div class="sidebar-footer">
+      Cardozo Engenharia · Alta Tensão AngloGold<br>
+      Fonte: ProgramaçãoSMA.xlsx — aba "Atividades(SM&amp;A)"
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <h1>Programação de Atividades SM&amp;A</h1>
+      <div class="meta">Período filtrado: <b id="meta-period">—</b><span id="meta-week-badge"></span> · <b id="meta-count">0</b> atividades exibidas</div>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi tone-accent">
+        <div class="label">Total Atividades</div>
+        <div class="value" id="kpi-total">0</div>
+        <div class="sub">no filtro atual</div>
+      </div>
+      <div class="kpi tone-accent">
+        <div class="label">Programadas</div>
+        <div class="value" id="kpi-programadas">0</div>
+        <div class="sub">com data definida</div>
+      </div>
+      <div class="kpi tone-warning">
+        <div class="label">A Programar</div>
+        <div class="value" id="kpi-a-programar">0</div>
+        <div class="sub">sem data definida</div>
+      </div>
+      <div class="kpi tone-critical">
+        <div class="label">Atrasadas</div>
+        <div class="value" id="kpi-atrasadas">0</div>
+        <div class="sub">fora do prazo</div>
+      </div>
+      <div class="kpi tone-good">
+        <div class="label">Concluídas</div>
+        <div class="value" id="kpi-concluidas">0</div>
+        <div class="sub">finalizadas</div>
+      </div>
+      <div class="kpi tone-accent">
+        <div class="label">Horas Previstas</div>
+        <div class="value" id="kpi-horas">0</div>
+        <div class="sub">soma do período</div>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Atividades por Local</h2>
+          <span class="hint" id="local-hint"></span>
+        </div>
+        <div class="chart-scroll" id="chart-local-wrap"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Tipo de Atividade da Semana</h2>
+          <span class="hint" id="tipo-semana-hint"></span>
+        </div>
+        <div id="tipo-semana-wrap"></div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades da Semana</h2>
+        <span class="hint" id="semana-hint"></span>
+      </div>
+      <div class="chart-scroll" id="chart-semana-wrap"></div>
+      <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades com Observações e Pendências</h2>
+        <span class="hint" id="obs-hint"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="obs-table">
+          <thead>
+            <tr>
+              <th>Local</th>
+              <th>Observação / Pendência</th>
+              <th>Situação</th>
+              <th style="text-align:right">Horas</th>
+            </tr>
+          </thead>
+          <tbody id="obs-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = __DATA_JSON__;
+
+const tooltip = document.getElementById('tooltip');
+function showTip(x,y,html){
+  tooltip.innerHTML = html;
+  tooltip.style.display='block';
+  const pad=14;
+  let left = x+pad, top = y+pad;
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  if(left+tw > window.innerWidth-8) left = x-tw-pad;
+  if(top+th > window.innerHeight-8) top = y-th-pad;
+  tooltip.style.left = left+'px';
+  tooltip.style.top = top+'px';
+}
+function hideTip(){ tooltip.style.display='none'; }
+
+function fmtInt(n){ return new Intl.NumberFormat('pt-BR').format(Math.round(n)); }
+function fmtH(n){ return new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(n); }
+function fmtDateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y;
+}
+function isoToDate(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y,m-1,d));
+}
+function dateToIso(dt){
+  return dt.toISOString().slice(0,10);
+}
+function weekStartIso(iso){
+  const dt = isoToDate(iso);
+  const dow = dt.getUTCDay(); // 0=Sun..6=Sat
+  const diff = (dow===0? -6 : 1-dow); // shift to Monday
+  dt.setUTCDate(dt.getUTCDate()+diff);
+  return dateToIso(dt);
+}
+function addDaysIso(iso, days){
+  const dt = isoToDate(iso);
+  dt.setUTCDate(dt.getUTCDate()+days);
+  return dateToIso(dt);
+}
+// Semana corrente calculada a partir da data real do dispositivo a cada carregamento —
+// por isso o painel "vira a página" sozinho quando uma nova semana começa, sem precisar editar nada aqui.
+function getCurrentWeekRange(){
+  const now = new Date();
+  const todayIso = dateToIso(new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())));
+  const start = weekStartIso(todayIso);
+  const end = addDaysIso(start, 6);
+  return {start, end};
+}
+
+// ---------- populate filter options ----------
+const locals = [...new Set(DATA.acts.map(a=>a.local))].sort();
+const situacoes = [...new Set(DATA.acts.map(a=>a.situacao))].filter(Boolean);
+const situacaoOrder = ['Atrasado','A Programar','No prazo','Concluído'];
+situacoes.sort((a,b)=> situacaoOrder.indexOf(a)-situacaoOrder.indexOf(b));
+const descCounts = {};
+DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
+const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
+
+const selLocal = document.getElementById('f-local');
+locals.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; selLocal.appendChild(o); });
+
+const selSituacao = document.getElementById('f-situacao');
+situacoes.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; selSituacao.appendChild(o); });
+
+const selAtividade = document.getElementById('f-atividade');
+descs.forEach(d=>{
+  const o=document.createElement('option'); o.value=d;
+  const label = d.length>52 ? d.slice(0,50)+'…' : d;
+  o.textContent = label+' ('+descCounts[d]+')';
+  o.title = d;
+  selAtividade.appendChild(o);
+});
+
+const allDates = DATA.acts.flatMap(a=>[a.ini,a.fim]).filter(Boolean).concat(DATA.carga.map(c=>c.data));
+const minDate = allDates.reduce((a,b)=> a<b?a:b);
+const maxDate = allDates.reduce((a,b)=> a>b?a:b);
+const inpStart = document.getElementById('f-date-start');
+const inpEnd = document.getElementById('f-date-end');
+inpStart.min = minDate; inpStart.max = maxDate;
+inpEnd.min = minDate; inpEnd.max = maxDate;
+
+// Padrão ao abrir o painel: semana atual (não o histórico inteiro) — cada visita recalcula
+// a semana com base na data do momento, então o filtro acompanha o calendário sozinho.
+const initialWeek = getCurrentWeekRange();
+inpStart.value = initialWeek.start;
+inpEnd.value = initialWeek.end;
+
+[selLocal, selSituacao, selAtividade, inpStart, inpEnd].forEach(el=> el.addEventListener('change', render));
+document.getElementById('btn-reset').addEventListener('click', ()=>{
+  selLocal.value=''; selSituacao.value=''; selAtividade.value='';
+  const cw = getCurrentWeekRange();
+  inpStart.value=cw.start; inpEnd.value=cw.end;
+  render();
+});
+document.getElementById('btn-full-period').addEventListener('click', ()=>{
+  inpStart.value=minDate; inpEnd.value=maxDate;
+  render();
+});
+
+// ---------- bar chart builder (SVG) ----------
+function buildBarChart(container, items, opts){
+  container.innerHTML='';
+  if(items.length===0){
+    const p=document.createElement('div');
+    p.className='empty-note';
+    p.textContent='Nenhum dado para os filtros selecionados.';
+    container.appendChild(p);
+    return;
+  }
+  const o = Object.assign({
+    barW:26, gap:12, height:230, padTop:26, padBottom:44, padLeft:34, padRight:16,
+    colorOf:()=>getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
+    valueFmt:(v)=>fmtInt(v),
+    tooltipOf:(d)=>d.label+': '+fmtInt(d.value),
+    refLine:null, refLabel:'', rotateLabels:true
+  }, opts);
+
+  const maxVal = Math.max(...items.map(d=>d.value), o.refLine||0) * 1.18 || 1;
+  const plotH = o.height - o.padTop - o.padBottom;
+  const width = o.padLeft + o.padRight + items.length*(o.barW+o.gap);
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS,'svg');
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', o.height+8);
+  svg.setAttribute('viewBox', '0 0 '+width+' '+(o.height+8));
+
+  // grid lines (0, 25%, 50%, 75%, 100% of maxVal)
+  [0,0.25,0.5,0.75,1].forEach(f=>{
+    const y = o.padTop + plotH*(1-f);
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+  });
+
+  if(o.refLine){
+    const yRef = o.padTop + plotH*(1 - o.refLine/maxVal);
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
+    line.setAttribute('y1', yRef); line.setAttribute('y2', yRef);
+    line.setAttribute('stroke', getComputedStyle(document.body).getPropertyValue('--text-muted').trim());
+    line.setAttribute('stroke-width','1.5');
+    line.setAttribute('stroke-dasharray','4 4');
+    svg.appendChild(line);
+    const lbl = document.createElementNS(svgNS,'text');
+    lbl.setAttribute('x', width-o.padRight);
+    lbl.setAttribute('y', yRef-5);
+    lbl.setAttribute('text-anchor','end');
+    lbl.setAttribute('class','axis-label');
+    lbl.textContent = o.refLabel;
+    svg.appendChild(lbl);
+  }
+
+  items.forEach((d,i)=>{
+    const x = o.padLeft + i*(o.barW+o.gap);
+    const h = maxVal>0 ? (d.value/maxVal)*plotH : 0;
+    const y = o.padTop + plotH - h;
+    const rect = document.createElementNS(svgNS,'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', o.barW); rect.setAttribute('height', Math.max(h,1.5));
+    rect.setAttribute('rx', 3);
+    rect.setAttribute('fill', o.colorOf(d));
+    rect.style.cursor='pointer';
+    rect.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY, o.tooltipOf(d)));
+    rect.addEventListener('mouseleave', hideTip);
+    svg.appendChild(rect);
+
+    if(d.value>0){
+      const vlbl = document.createElementNS(svgNS,'text');
+      vlbl.setAttribute('x', x+o.barW/2);
+      vlbl.setAttribute('y', y-6);
+      vlbl.setAttribute('text-anchor','middle');
+      vlbl.setAttribute('class','bar-value-label');
+      vlbl.textContent = o.valueFmt(d.value);
+      svg.appendChild(vlbl);
+    }
+
+    const glabel = document.createElementNS(svgNS,'text');
+    glabel.setAttribute('x', x+o.barW/2);
+    glabel.setAttribute('class','axis-label');
+    if(o.rotateLabels){
+      glabel.setAttribute('y', o.padTop+plotH+14);
+      glabel.setAttribute('text-anchor','end');
+      glabel.setAttribute('transform','rotate(-38 '+(x+o.barW/2)+' '+(o.padTop+plotH+14)+')');
+    } else {
+      glabel.setAttribute('y', o.padTop+plotH+20);
+      glabel.setAttribute('text-anchor','middle');
+    }
+    glabel.textContent = d.label;
+    svg.appendChild(glabel);
+  });
+
+  const baseline = document.createElementNS(svgNS,'line');
+  baseline.setAttribute('x1', o.padLeft); baseline.setAttribute('x2', width-o.padRight);
+  baseline.setAttribute('y1', o.padTop+plotH); baseline.setAttribute('y2', o.padTop+plotH);
+  baseline.setAttribute('class','baseline-line');
+  svg.appendChild(baseline);
+
+  container.appendChild(svg);
+}
+
+// ---------- horizontal bar list (tipo de atividade da semana) ----------
+function buildHBarList(container, items, opts){
+  container.innerHTML='';
+  if(items.length===0){
+    const p=document.createElement('div');
+    p.className='empty-note';
+    p.textContent='Nenhuma atividade programada para esta semana.';
+    container.appendChild(p);
+    return;
+  }
+  const o = Object.assign({ valueFmt:(v)=>fmtInt(v) }, opts);
+  const maxVal = Math.max(...items.map(d=>d.value)) || 1;
+  const list = document.createElement('div');
+  list.className = 'hbar-list';
+  items.forEach(d=>{
+    const row = document.createElement('div');
+    row.className = 'hbar-row';
+    const label = document.createElement('div');
+    label.className = 'hbar-label';
+    label.textContent = d.label;
+    label.title = d.full || d.label;
+    const track = document.createElement('div');
+    track.className = 'hbar-track';
+    const fill = document.createElement('div');
+    fill.className = 'hbar-fill';
+    fill.style.width = Math.max((d.value/maxVal)*100, 4)+'%';
+    track.appendChild(fill);
+    const value = document.createElement('div');
+    value.className = 'hbar-value';
+    value.textContent = o.valueFmt(d.value);
+    row.appendChild(label); row.appendChild(track); row.appendChild(value);
+    list.appendChild(row);
+  });
+  container.appendChild(list);
+}
+
+// ---------- main render ----------
+function passesFilters(a){
+  if(selLocal.value && a.local!==selLocal.value) return false;
+  if(selSituacao.value && a.situacao!==selSituacao.value) return false;
+  if(selAtividade.value && a.desc!==selAtividade.value) return false;
+  const start = inpStart.value, end = inpEnd.value;
+  if(a.ini && end && a.ini>end) return false;
+  if(a.fim && start && a.fim<start) return false;
+  return true;
+}
+
+function render(){
+  const filtered = DATA.acts.filter(passesFilters);
+
+  document.getElementById('meta-period').textContent = fmtDateBR(inpStart.value)+' – '+fmtDateBR(inpEnd.value);
+  document.getElementById('meta-count').textContent = fmtInt(filtered.length);
+  const cwNow = getCurrentWeekRange();
+  document.getElementById('meta-week-badge').textContent =
+    (inpStart.value===cwNow.start && inpEnd.value===cwNow.end) ? 'semana atual' : '';
+
+  const total = filtered.length;
+  const aProgramar = filtered.filter(a=>a.situacao==='A Programar').length;
+  const atrasadas = filtered.filter(a=>a.situacao==='Atrasado').length;
+  const concluidas = filtered.filter(a=>a.status==='concluído').length;
+  const programadas = total - aProgramar;
+  const horas = filtered.reduce((s,a)=>s+(a.horas||0),0);
+
+  document.getElementById('kpi-total').textContent = fmtInt(total);
+  document.getElementById('kpi-programadas').textContent = fmtInt(programadas);
+  document.getElementById('kpi-a-programar').textContent = fmtInt(aProgramar);
+  document.getElementById('kpi-atrasadas').textContent = fmtInt(atrasadas);
+  document.getElementById('kpi-concluidas').textContent = fmtInt(concluidas);
+  document.getElementById('kpi-horas').textContent = fmtInt(horas);
+
+  // chart 1: atividades por local
+  const counts = {};
+  filtered.forEach(a=>{ if(a.local) counts[a.local]=(counts[a.local]||0)+1; });
+  const localItems = Object.entries(counts)
+    .map(([label,value])=>({label,value}))
+    .sort((a,b)=> a.value-b.value || a.label.localeCompare(b.label));
+  document.getElementById('local-hint').textContent = localItems.length+' locais no filtro';
+  buildBarChart(document.getElementById('chart-local-wrap'), localItems, {
+    barW:26, gap:15, height:236,
+    colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
+    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s)'
+  });
+
+  // --- painéis da "semana corrente": sempre fixos em seg–sex da semana atual,
+  // calculados direto de DATA.acts (nunca de `filtered`) para não sofrer efeito dos filtros ---
+  const wk = getCurrentWeekRange();
+  const weekdayIsos = [0,1,2,3,4].map(n=> addDaysIso(wk.start, n));
+  const weekdayNames = ['Seg','Ter','Qua','Qui','Sex'];
+  const actsThisWeek = DATA.acts.filter(a=> a.ini && a.ini>=weekdayIsos[0] && a.ini<=weekdayIsos[4]);
+
+  // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex)
+  const dayCounts = {};
+  actsThisWeek.forEach(a=>{ dayCounts[a.ini] = (dayCounts[a.ini]||0)+1; });
+  const semanaItems = weekdayIsos.map((iso,i)=>({
+    label: weekdayNames[i]+' '+fmtDateBR(iso).slice(0,5),
+    value: dayCounts[iso]||0,
+    iso
+  }));
+  document.getElementById('semana-hint').textContent = 'semana de '+fmtDateBR(wk.start)+' a '+fmtDateBR(addDaysIso(wk.start,4));
+  buildBarChart(document.getElementById('chart-semana-wrap'), semanaItems, {
+    barW:64, gap:28, height:220, padLeft:16, padBottom:32, rotateLabels:false,
+    colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
+    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s) com início previsto'
+  });
+
+  // chart 3: tipo de atividade programada para a semana corrente
+  const tipoCounts = {};
+  actsThisWeek.forEach(a=>{ tipoCounts[a.desc] = (tipoCounts[a.desc]||0)+1; });
+  const tipoItems = Object.entries(tipoCounts)
+    .map(([desc,value])=>({ label: desc.length>60 ? desc.slice(0,58)+'…' : desc, full: desc, value }))
+    .sort((a,b)=> b.value-a.value);
+  document.getElementById('tipo-semana-hint').textContent = tipoItems.length+' tipo(s) · '+actsThisWeek.length+' atividade(s) nesta semana';
+  buildHBarList(document.getElementById('tipo-semana-wrap'), tipoItems, {});
+
+  // table: observations
+  const obsRows = filtered.filter(a=>a.obs);
+  obsRows.sort((a,b)=> situacaoOrder.indexOf(a.situacao)-situacaoOrder.indexOf(b.situacao) || a.local.localeCompare(b.local));
+  document.getElementById('obs-hint').textContent = obsRows.length+' registro(s)';
+  const tbody = document.getElementById('obs-tbody');
+  tbody.innerHTML='';
+  if(obsRows.length===0){
+    const tr=document.createElement('tr');
+    const td=document.createElement('td');
+    td.colSpan=4; td.className='empty-note'; td.textContent='Nenhuma observação para os filtros selecionados.';
+    tr.appendChild(td); tbody.appendChild(tr);
+  } else {
+    obsRows.forEach(a=>{
+      const tr=document.createElement('tr');
+      const chipClass = a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning': a.situacao==='Concluído'?'chip-good':'chip-neutral';
+      tr.innerHTML = '<td class="local-cell">'+a.local+'</td>'+
+        '<td>'+a.obs+'</td>'+
+        '<td><span class="chip '+chipClass+'">'+a.situacao+'</span></td>'+
+        '<td class="horas-cell">'+fmtH(a.horas)+'</td>';
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+render();
+</script>

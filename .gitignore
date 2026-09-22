@@ -1,0 +1,12 @@
+# Não versiona a planilha de dados (fica só na máquina de quem gera o painel)
+data/
+*.xlsx
+!assets/**
+
+# Arquivo gerado — pode ser recriado a qualquer momento com build_dashboard.py.
+# Remova esta linha (ou rode `git add -f dist/dashboard.html`) se quiser versionar
+# o HTML já publicado também.
+dist/*.html
+
+__pycache__/
+*.pyc
