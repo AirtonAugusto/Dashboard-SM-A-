@@ -17,7 +17,7 @@ if not defined PYEXE (
 
 %PYEXE% -c "import openpyxl" >nul 2>&1
 if errorlevel 1 (
-  echo Instalando dependencia necessaria (openpyxl)...
+  echo Instalando biblioteca necessaria: openpyxl...
   %PYEXE% -m pip install -r requirements.txt
 )
 
