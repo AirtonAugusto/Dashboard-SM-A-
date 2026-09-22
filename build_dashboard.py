@@ -91,7 +91,7 @@ def main():
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(out_html, encoding="utf-8")
+    out_path.write_text(out_html, encoding="utf-8", newline="\n")
 
     print(f"OK: {len(acts)} atividades, {len(carga)} dias de carga diária.")
     print(f"Painel gerado em: {out_path.resolve()}")
