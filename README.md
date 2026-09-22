@@ -12,6 +12,8 @@ sma-dashboard/
 ├── template.html          # layout, estilos e lógica do painel (com dois
 │                           # placeholders: __DATA_JSON__ e __LION_B64__)
 ├── build_dashboard.py      # lê a planilha .xlsx e gera o HTML final
+├── atualizar_painel.bat    # script de um clique: gera + commita + envia
+├── update_and_publish.py   # lógica usada pelo .bat acima
 ├── requirements.txt
 ├── assets/
 │   └── logo_anglogold.png  # logo usada na barra lateral
@@ -37,26 +39,33 @@ from a branch" → Branch: `main` / pasta `/docs`.
 
 ## Como atualizar o painel com uma planilha nova
 
-Sempre que a `ProgramaçãoSMA.xlsx` for atualizada, rode:
+### Opção 1 — script de um clique (recomendado)
+
+Sempre que salvar a planilha atualizada no caminho de sempre, dê duplo
+clique em **`atualizar_painel.bat`**, dentro desta pasta. Ele sozinho:
+
+1. gera o `docs/index.html` a partir da planilha mais recente;
+2. commita a mudança;
+3. envia (`git push`) para o GitHub.
+
+Em 1–2 minutos o link público já reflete os dados novos. Se a planilha
+mudar de nome ou de pasta, abra `update_and_publish.py` e ajuste a linha
+`XLSX_PATH` para o novo caminho.
+
+### Opção 2 — passo a passo manual
 
 ```bash
 pip install -r requirements.txt   # só na primeira vez
 python build_dashboard.py --xlsx "/caminho/para/ProgramaçãoSMA.xlsx"
-```
-
-Isso sobrescreve `docs/index.html` com os dados mais recentes. Para o
-link público refletir a mudança, é preciso commitar e subir:
-
-```bash
 git add docs/index.html
 git commit -m "Atualiza painel com nova planilha"
 git push
 ```
 
-(sem esse commit/push, o arquivo muda só na sua máquina — o link
+(sem o commit/push, o arquivo muda só na sua máquina — o link
 público continua mostrando a versão anterior.)
 
-Parâmetros opcionais:
+Parâmetros opcionais do `build_dashboard.py`:
 
 | Parâmetro | Padrão | Para quê |
 | --- | --- | --- |
