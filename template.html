@@ -212,11 +212,11 @@
   .modal-close{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;color:var(--text-muted);padding:0 2px;}
   .modal-close:hover{color:var(--text-primary);}
   .modal-body{overflow-y:auto;padding:6px 18px 16px;display:flex;flex-direction:column;}
-  .week-modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-  .week-modal-row:last-child{border-bottom:none;}
-  .week-modal-row-main{min-width:0;}
-  .week-modal-row-desc{font-size:12.5px;font-weight:600;color:var(--text-primary);}
-  .week-modal-row-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+  .modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .modal-row:last-child{border-bottom:none;}
+  .modal-row-main{min-width:0;}
+  .modal-row-desc{font-size:12.5px;font-weight:600;color:var(--text-primary);}
+  .modal-row-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 
   .tooltip{
     position:fixed;
@@ -360,6 +360,7 @@
         <span class="hint" id="local-hint"></span>
       </div>
       <div class="chart-scroll" id="chart-local-wrap"></div>
+      <div class="chart-caption">Clique em uma barra para ver as atividades daquele local.</div>
     </section>
 
     <section class="charts">
@@ -382,7 +383,27 @@
           <span class="hint" id="tipo-semana-hint"></span>
         </div>
         <div id="tipo-semana-wrap"></div>
-        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado. Clique em um tipo para ver as atividades.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades Concluídas</h2>
+        <span class="hint" id="concluidas-hint"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="obs-table">
+          <thead>
+            <tr>
+              <th>Local</th>
+              <th>Descrição</th>
+              <th>Situação</th>
+              <th style="text-align:right">Horas</th>
+            </tr>
+          </thead>
+          <tbody id="concluidas-tbody"></tbody>
+        </table>
       </div>
     </section>
 
@@ -396,6 +417,7 @@
           <thead>
             <tr>
               <th>Local</th>
+              <th>Descrição</th>
               <th>Observação / Pendência</th>
               <th>Situação</th>
               <th style="text-align:right">Horas</th>
@@ -410,16 +432,16 @@
 
 <div class="tooltip" id="tooltip"></div>
 
-<div class="modal-overlay" id="week-modal-overlay">
-  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="week-modal-title">
+<div class="modal-overlay" id="acts-modal-overlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="acts-modal-title">
     <div class="modal-head">
       <div>
-        <h3 id="week-modal-title">Dia</h3>
-        <span class="hint" id="week-modal-sub"></span>
+        <h3 id="acts-modal-title">Dia</h3>
+        <span class="hint" id="acts-modal-sub"></span>
       </div>
-      <button class="modal-close" id="week-modal-close" aria-label="Fechar">&times;</button>
+      <button class="modal-close" id="acts-modal-close" aria-label="Fechar">&times;</button>
     </div>
-    <div class="modal-body" id="week-modal-body"></div>
+    <div class="modal-body" id="acts-modal-body"></div>
   </div>
 </div>
 
@@ -541,7 +563,7 @@ function buildBarChart(container, items, opts){
     colorOf:()=>getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
     valueFmt:(v)=>fmtInt(v),
     tooltipOf:(d)=>d.label+': '+fmtInt(d.value),
-    refLine:null, refLabel:'', rotateLabels:true
+    refLine:null, refLabel:'', rotateLabels:true, onClick:null
   }, opts);
 
   const maxVal = Math.max(...items.map(d=>d.value), o.refLine||0) * 1.18 || 1;
@@ -593,6 +615,7 @@ function buildBarChart(container, items, opts){
     rect.style.cursor='pointer';
     rect.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY, o.tooltipOf(d)));
     rect.addEventListener('mouseleave', hideTip);
+    if(o.onClick){ rect.addEventListener('click', ()=> o.onClick(d)); }
     svg.appendChild(rect);
 
     if(d.value>0){
@@ -665,7 +688,8 @@ function buildWeekChart(container, days, opts){
     // grupo, não em cada retângulo, para o clique funcionar em cima da barra também
     const g = document.createElementNS(svgNS,'g');
     g.style.cursor='pointer';
-    g.addEventListener('click', ()=> openWeekModal(d));
+    g.addEventListener('click', ()=> openActsModal(d.label,
+      d.total+' atividade(s) · '+d.concluida+' concluída(s) · '+d.pendente+' em andamento/pendente(s)', d.acts));
     g.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY,
       '<b>'+d.label+'</b><br>'+fmtInt(d.concluida)+' concluída(s)<br>'+fmtInt(d.pendente)+' em andamento/pendente(s)<br><i>clique para ver a lista</i>'));
     g.addEventListener('mouseleave', hideTip);
@@ -727,46 +751,47 @@ function buildWeekChart(container, days, opts){
   container.appendChild(svg);
 }
 
-function openWeekModal(day){
-  document.getElementById('week-modal-title').textContent = day.label;
-  document.getElementById('week-modal-sub').textContent =
-    day.total+' atividade(s) · '+day.concluida+' concluída(s) · '+day.pendente+' em andamento/pendente(s)';
-  const body = document.getElementById('week-modal-body');
+// janela de detalhe reaproveitada por todos os gráficos (local, semana, tipo de atividade)
+function openActsModal(title, subtitle, acts){
+  document.getElementById('acts-modal-title').textContent = title;
+  document.getElementById('acts-modal-sub').textContent = subtitle || '';
+  const body = document.getElementById('acts-modal-body');
   body.innerHTML = '';
-  if(day.acts.length===0){
+  const list = acts || [];
+  if(list.length===0){
     const p = document.createElement('div');
     p.className = 'empty-note';
-    p.textContent = 'Nenhuma atividade com início previsto neste dia.';
+    p.textContent = 'Nenhuma atividade para mostrar.';
     body.appendChild(p);
   } else {
-    day.acts.slice()
+    list.slice()
       .sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''))
       .forEach(a=>{
         const concluida = a.status==='concluído';
         const chipClass = concluida ? 'chip-good' : (a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning':'chip-neutral');
         const chipText = concluida ? 'Concluída' : (a.situacao || '—');
         const row = document.createElement('div');
-        row.className = 'week-modal-row';
+        row.className = 'modal-row';
         row.innerHTML =
-          '<div class="week-modal-row-main">'+
-            '<div class="week-modal-row-desc">'+(a.desc||'—')+'</div>'+
-            '<div class="week-modal-row-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h</div>'+
+          '<div class="modal-row-main">'+
+            '<div class="modal-row-desc">'+(a.desc||'—')+'</div>'+
+            '<div class="modal-row-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h</div>'+
           '</div>'+
           '<span class="chip '+chipClass+'">'+chipText+'</span>';
         body.appendChild(row);
       });
   }
-  document.getElementById('week-modal-overlay').classList.add('open');
+  document.getElementById('acts-modal-overlay').classList.add('open');
 }
-function closeWeekModal(){
-  document.getElementById('week-modal-overlay').classList.remove('open');
+function closeActsModal(){
+  document.getElementById('acts-modal-overlay').classList.remove('open');
 }
-document.getElementById('week-modal-close').addEventListener('click', closeWeekModal);
-document.getElementById('week-modal-overlay').addEventListener('click', (e)=>{
-  if(e.target.id==='week-modal-overlay') closeWeekModal();
+document.getElementById('acts-modal-close').addEventListener('click', closeActsModal);
+document.getElementById('acts-modal-overlay').addEventListener('click', (e)=>{
+  if(e.target.id==='acts-modal-overlay') closeActsModal();
 });
 document.addEventListener('keydown', (e)=>{
-  if(e.key==='Escape') closeWeekModal();
+  if(e.key==='Escape') closeActsModal();
 });
 
 // ---------- horizontal bar list (tipo de atividade da semana) ----------
@@ -779,13 +804,14 @@ function buildHBarList(container, items, opts){
     container.appendChild(p);
     return;
   }
-  const o = Object.assign({ valueFmt:(v)=>fmtInt(v) }, opts);
+  const o = Object.assign({ valueFmt:(v)=>fmtInt(v), onClick:null }, opts);
   const maxVal = Math.max(...items.map(d=>d.value)) || 1;
   const list = document.createElement('div');
   list.className = 'hbar-list';
   items.forEach(d=>{
     const row = document.createElement('div');
     row.className = 'hbar-row';
+    if(o.onClick){ row.style.cursor='pointer'; row.addEventListener('click', ()=> o.onClick(d)); }
     const label = document.createElement('div');
     label.className = 'hbar-label';
     label.textContent = d.label;
@@ -841,15 +867,22 @@ function render(){
 
   // chart 1: atividades por local
   const counts = {};
-  filtered.forEach(a=>{ if(a.local) counts[a.local]=(counts[a.local]||0)+1; });
+  const localActsMap = {};
+  filtered.forEach(a=>{
+    if(a.local){
+      counts[a.local]=(counts[a.local]||0)+1;
+      (localActsMap[a.local] = localActsMap[a.local]||[]).push(a);
+    }
+  });
   const localItems = Object.entries(counts)
-    .map(([label,value])=>({label,value}))
+    .map(([label,value])=>({label,value,acts:localActsMap[label]}))
     .sort((a,b)=> a.value-b.value || a.label.localeCompare(b.label));
   document.getElementById('local-hint').textContent = localItems.length+' locais no filtro';
   buildBarChart(document.getElementById('chart-local-wrap'), localItems, {
     barW:26, gap:15, height:236,
     colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
-    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s)'
+    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s)',
+    onClick: (d)=> openActsModal(d.label, d.value+' atividade(s) neste local (conforme filtros atuais)', d.acts)
   });
 
   // --- painéis da "semana corrente": sempre fixos em seg–sex da semana atual,
@@ -878,12 +911,41 @@ function render(){
 
   // chart 3: tipo de atividade programada para a semana corrente
   const tipoCounts = {};
-  actsThisWeek.forEach(a=>{ tipoCounts[a.desc] = (tipoCounts[a.desc]||0)+1; });
+  const tipoActsMap = {};
+  actsThisWeek.forEach(a=>{
+    tipoCounts[a.desc] = (tipoCounts[a.desc]||0)+1;
+    (tipoActsMap[a.desc] = tipoActsMap[a.desc]||[]).push(a);
+  });
   const tipoItems = Object.entries(tipoCounts)
-    .map(([desc,value])=>({ label: desc.length>60 ? desc.slice(0,58)+'…' : desc, full: desc, value }))
+    .map(([desc,value])=>({ label: desc.length>60 ? desc.slice(0,58)+'…' : desc, full: desc, value, acts: tipoActsMap[desc] }))
     .sort((a,b)=> b.value-a.value);
   document.getElementById('tipo-semana-hint').textContent = tipoItems.length+' tipo(s) · '+actsThisWeek.length+' atividade(s) nesta semana';
-  buildHBarList(document.getElementById('tipo-semana-wrap'), tipoItems, {});
+  buildHBarList(document.getElementById('tipo-semana-wrap'), tipoItems, {
+    onClick: (d)=> openActsModal(d.full, d.value+' atividade(s) desta semana', d.acts)
+  });
+
+  // table: atividades concluídas (respeita os filtros)
+  const concluidasRows = filtered.filter(a=> a.status==='concluído');
+  concluidasRows.sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''));
+  document.getElementById('concluidas-hint').textContent = concluidasRows.length+' registro(s)';
+  const tbodyC = document.getElementById('concluidas-tbody');
+  tbodyC.innerHTML='';
+  if(concluidasRows.length===0){
+    const tr=document.createElement('tr');
+    const td=document.createElement('td');
+    td.colSpan=4; td.className='empty-note'; td.textContent='Nenhuma atividade concluída para os filtros selecionados.';
+    tr.appendChild(td); tbodyC.appendChild(tr);
+  } else {
+    concluidasRows.forEach(a=>{
+      const tr=document.createElement('tr');
+      const chipClass = a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning': a.situacao==='Concluído'?'chip-good':'chip-neutral';
+      tr.innerHTML = '<td class="local-cell">'+(a.local||'—')+'</td>'+
+        '<td>'+(a.desc||'—')+'</td>'+
+        '<td><span class="chip '+chipClass+'">'+(a.situacao||'—')+'</span></td>'+
+        '<td class="horas-cell">'+fmtH(a.horas)+'</td>';
+      tbodyC.appendChild(tr);
+    });
+  }
 
   // table: observations
   const obsRows = filtered.filter(a=>a.obs);
@@ -894,13 +956,14 @@ function render(){
   if(obsRows.length===0){
     const tr=document.createElement('tr');
     const td=document.createElement('td');
-    td.colSpan=4; td.className='empty-note'; td.textContent='Nenhuma observação para os filtros selecionados.';
+    td.colSpan=5; td.className='empty-note'; td.textContent='Nenhuma observação para os filtros selecionados.';
     tr.appendChild(td); tbody.appendChild(tr);
   } else {
     obsRows.forEach(a=>{
       const tr=document.createElement('tr');
       const chipClass = a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning': a.situacao==='Concluído'?'chip-good':'chip-neutral';
       tr.innerHTML = '<td class="local-cell">'+a.local+'</td>'+
+        '<td>'+(a.desc||'—')+'</td>'+
         '<td>'+a.obs+'</td>'+
         '<td><span class="chip '+chipClass+'">'+a.situacao+'</span></td>'+
         '<td class="horas-cell">'+fmtH(a.horas)+'</td>';
