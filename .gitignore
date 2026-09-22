@@ -3,10 +3,9 @@ data/
 *.xlsx
 !assets/**
 
-# Arquivo gerado — pode ser recriado a qualquer momento com build_dashboard.py.
-# Remova esta linha (ou rode `git add -f dist/dashboard.html`) se quiser versionar
-# o HTML já publicado também.
-dist/*.html
+# docs/index.html É VERSIONADO DE PROPÓSITO: é o que o GitHub Pages publica.
+# Sempre que rodar build_dashboard.py, o arquivo será sobrescrito — inclua a
+# mudança no próximo commit para atualizar o link público.
 
 __pycache__/
 *.pyc

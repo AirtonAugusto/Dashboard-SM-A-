@@ -7,13 +7,15 @@ Uso:
     python build_dashboard.py --xlsx caminho/para/ProgramacaoSMA.xlsx \
                                --logo assets/logo_anglogold.png \
                                --template template.html \
-                               --out dist/dashboard.html
+                               --out docs/index.html
 
 Basta rodar este script de novo, apontando para a planilha atualizada,
 sempre que quiser refletir os dados mais recentes no painel. O arquivo
-gerado em --out é autocontido (HTML + CSS + JS + dados + logo embutidos)
-e pode ser aberto direto no navegador ou publicado onde preferir
-(GitHub Pages, um servidor interno, etc.).
+gerado em --out é autocontido (HTML + CSS + JS + dados + logo embutidos).
+O padrão é docs/index.html porque é o caminho que o GitHub Pages usa
+para publicar o painel automaticamente em um link público (veja o
+README) — mas também pode ser aberto direto no navegador, sem precisar
+de internet.
 """
 import argparse
 import base64
@@ -70,7 +72,7 @@ def main():
     ap.add_argument("--xlsx", required=True, help="Caminho da planilha ProgramaçãoSMA.xlsx")
     ap.add_argument("--logo", default="assets/logo_anglogold.png", help="Logo (PNG) para a barra lateral")
     ap.add_argument("--template", default="template.html", help="Template HTML com os placeholders")
-    ap.add_argument("--out", default="dist/dashboard.html", help="Arquivo HTML final a gerar")
+    ap.add_argument("--out", default="docs/index.html", help="Arquivo HTML final a gerar")
     ap.add_argument("--aba-atividades", default="Atividades(SM&A)", help="Nome da aba de atividades")
     ap.add_argument("--aba-carga", default="Carga Diária", help="Nome da aba de carga diária")
     args = ap.parse_args()

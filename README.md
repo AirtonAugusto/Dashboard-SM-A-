@@ -15,9 +15,25 @@ sma-dashboard/
 ├── requirements.txt
 ├── assets/
 │   └── logo_anglogold.png  # logo usada na barra lateral
-└── dist/
-    └── dashboard.html      # painel gerado (não versionado por padrão — veja .gitignore)
+└── docs/
+    └── index.html          # painel gerado — É este arquivo que o GitHub
+                             # Pages publica no link público (versionado)
 ```
+
+## Link público (GitHub Pages)
+
+O painel fica disponível em:
+
+**https://airtonaugusto.github.io/Dashboard-SM-A-/**
+
+Esse link é gerado automaticamente pelo GitHub a partir do arquivo
+`docs/index.html` sempre que ele é atualizado neste repositório (branch
+`main`). Quem só precisa **ver** o painel usa esse link — não precisa
+baixar nada, instalar nada, nem abrir arquivo local. Ele atualiza sozinho
+de 1 a 2 minutos depois de cada `git push`.
+
+Configuração feita uma única vez em Settings → Pages → Source: "Deploy
+from a branch" → Branch: `main` / pasta `/docs`.
 
 ## Como atualizar o painel com uma planilha nova
 
@@ -28,9 +44,17 @@ pip install -r requirements.txt   # só na primeira vez
 python build_dashboard.py --xlsx "/caminho/para/ProgramaçãoSMA.xlsx"
 ```
 
-Isso gera (ou substitui) `dist/dashboard.html` com os dados mais recentes.
-Basta abrir esse arquivo no navegador, ou publicá-lo onde preferir (GitHub
-Pages, um servidor interno, etc.).
+Isso sobrescreve `docs/index.html` com os dados mais recentes. Para o
+link público refletir a mudança, é preciso commitar e subir:
+
+```bash
+git add docs/index.html
+git commit -m "Atualiza painel com nova planilha"
+git push
+```
+
+(sem esse commit/push, o arquivo muda só na sua máquina — o link
+público continua mostrando a versão anterior.)
 
 Parâmetros opcionais:
 
@@ -38,7 +62,7 @@ Parâmetros opcionais:
 | --- | --- | --- |
 | `--logo` | `assets/logo_anglogold.png` | Trocar a logo da barra lateral |
 | `--template` | `template.html` | Usar outro template/layout |
-| `--out` | `dist/dashboard.html` | Onde salvar o HTML gerado |
+| `--out` | `docs/index.html` | Onde salvar o HTML gerado |
 | `--aba-atividades` | `Atividades(SM&A)` | Nome da aba de atividades, se mudar na planilha |
 | `--aba-carga` | `Carga Diária` | Nome da aba de carga diária, se mudar na planilha |
 
@@ -56,7 +80,5 @@ Parâmetros opcionais:
 
 ## Sem servidor, sem instalação para quem só vai usar
 
-Quem só precisa **ver** o painel não roda nada — recebe o
-`dist/dashboard.html` (por e-mail, rede interna, ou publicado no GitHub
-Pages) e abre no navegador. O `build_dashboard.py` é só para quem
-**atualiza os dados**.
+Quem só precisa **ver** o painel acessa o link do GitHub Pages acima.
+O `build_dashboard.py` é só para quem **atualiza os dados**.
