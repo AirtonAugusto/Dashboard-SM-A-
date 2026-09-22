@@ -204,6 +204,20 @@
   .hbar-fill{height:100%;border-radius:5px;background:var(--series-1);min-width:3px;}
   .hbar-value{font-size:12.5px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;text-align:right;min-width:1.6em;}
 
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,10,10,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:80;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);max-width:480px;width:100%;max-height:78vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex:none;}
+  .modal-head h3{margin:0 0 2px;font-size:15px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;color:var(--text-muted);padding:0 2px;}
+  .modal-close:hover{color:var(--text-primary);}
+  .modal-body{overflow-y:auto;padding:6px 18px 16px;display:flex;flex-direction:column;}
+  .week-modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .week-modal-row:last-child{border-bottom:none;}
+  .week-modal-row-main{min-width:0;}
+  .week-modal-row-desc{font-size:12.5px;font-weight:600;color:var(--text-primary);}
+  .week-modal-row-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+
   .tooltip{
     position:fixed;
     pointer-events:none;
@@ -340,13 +354,26 @@
       </div>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades por Local</h2>
+        <span class="hint" id="local-hint"></span>
+      </div>
+      <div class="chart-scroll" id="chart-local-wrap"></div>
+    </section>
+
     <section class="charts">
       <div class="panel">
         <div class="panel-head">
-          <h2>Atividades por Local</h2>
-          <span class="hint" id="local-hint"></span>
+          <h2>Atividades da Semana</h2>
+          <span class="hint" id="semana-hint"></span>
         </div>
-        <div class="chart-scroll" id="chart-local-wrap"></div>
+        <div class="chart-scroll" id="chart-semana-wrap"></div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--good)"></span>Concluída</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--series-1)"></span>Programada / em andamento</div>
+        </div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado. Clique em um dia para ver as atividades.</div>
       </div>
 
       <div class="panel">
@@ -357,15 +384,6 @@
         <div id="tipo-semana-wrap"></div>
         <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
       </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Atividades da Semana</h2>
-        <span class="hint" id="semana-hint"></span>
-      </div>
-      <div class="chart-scroll" id="chart-semana-wrap"></div>
-      <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
     </section>
 
     <section class="panel">
@@ -391,6 +409,19 @@
 </div>
 
 <div class="tooltip" id="tooltip"></div>
+
+<div class="modal-overlay" id="week-modal-overlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="week-modal-title">
+    <div class="modal-head">
+      <div>
+        <h3 id="week-modal-title">Dia</h3>
+        <span class="hint" id="week-modal-sub"></span>
+      </div>
+      <button class="modal-close" id="week-modal-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body" id="week-modal-body"></div>
+  </div>
+</div>
 
 <script>
 const DATA = __DATA_JSON__;
@@ -598,6 +629,146 @@ function buildBarChart(container, items, opts){
   container.appendChild(svg);
 }
 
+// ---------- gráfico compacto e clicável: atividades da semana (concluída x pendente) ----------
+function buildWeekChart(container, days, opts){
+  container.innerHTML='';
+  const o = Object.assign({ barW:42, gap:20, height:132, padTop:22, padBottom:26, padLeft:6, padRight:6 }, opts);
+  const maxVal = Math.max(...days.map(d=>d.total), 1) * 1.25;
+  const plotH = o.height - o.padTop - o.padBottom;
+  const width = o.padLeft + o.padRight + days.length*(o.barW+o.gap);
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS,'svg');
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', o.height+6);
+  svg.setAttribute('viewBox', '0 0 '+width+' '+(o.height+6));
+
+  const good = getComputedStyle(document.body).getPropertyValue('--good').trim();
+  const accent = getComputedStyle(document.body).getPropertyValue('--series-1').trim();
+  const borderCol = getComputedStyle(document.body).getPropertyValue('--border').trim();
+  const yBase = o.padTop + plotH;
+
+  [0,0.5,1].forEach(f=>{
+    const y = o.padTop + plotH*(1-f);
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+  });
+
+  days.forEach((d,i)=>{
+    const x = o.padLeft + i*(o.barW+o.gap);
+    const hConc = maxVal>0 ? (d.concluida/maxVal)*plotH : 0;
+    const hPend = maxVal>0 ? (d.pendente/maxVal)*plotH : 0;
+
+    // grupo da coluna inteira (área de clique + barras + rótulo): o listener fica no
+    // grupo, não em cada retângulo, para o clique funcionar em cima da barra também
+    const g = document.createElementNS(svgNS,'g');
+    g.style.cursor='pointer';
+    g.addEventListener('click', ()=> openWeekModal(d));
+    g.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY,
+      '<b>'+d.label+'</b><br>'+fmtInt(d.concluida)+' concluída(s)<br>'+fmtInt(d.pendente)+' em andamento/pendente(s)<br><i>clique para ver a lista</i>'));
+    g.addEventListener('mouseleave', hideTip);
+    svg.appendChild(g);
+
+    const hit = document.createElementNS(svgNS,'rect');
+    hit.setAttribute('x', x-o.gap/2); hit.setAttribute('y', 0);
+    hit.setAttribute('width', o.barW+o.gap); hit.setAttribute('height', o.height+6);
+    hit.setAttribute('fill','transparent');
+    g.appendChild(hit);
+
+    if(d.pendente>0){
+      const rectP = document.createElementNS(svgNS,'rect');
+      rectP.setAttribute('x', x); rectP.setAttribute('width', o.barW);
+      rectP.setAttribute('y', yBase-hConc-hPend); rectP.setAttribute('height', Math.max(hPend,1.5));
+      rectP.setAttribute('rx', 3); rectP.setAttribute('fill', accent);
+      g.appendChild(rectP);
+    }
+    if(d.concluida>0){
+      const rectC = document.createElementNS(svgNS,'rect');
+      rectC.setAttribute('x', x); rectC.setAttribute('width', o.barW);
+      rectC.setAttribute('y', yBase-hConc); rectC.setAttribute('height', Math.max(hConc,1.5));
+      rectC.setAttribute('rx', 3); rectC.setAttribute('fill', good);
+      g.appendChild(rectC);
+    }
+    if(d.total===0){
+      const rectZ = document.createElementNS(svgNS,'rect');
+      rectZ.setAttribute('x', x); rectZ.setAttribute('width', o.barW);
+      rectZ.setAttribute('y', yBase-2); rectZ.setAttribute('height', 2);
+      rectZ.setAttribute('rx', 1); rectZ.setAttribute('fill', borderCol);
+      g.appendChild(rectZ);
+    }
+
+    if(d.total>0){
+      const vlbl = document.createElementNS(svgNS,'text');
+      vlbl.setAttribute('x', x+o.barW/2);
+      vlbl.setAttribute('y', yBase-hConc-hPend-6);
+      vlbl.setAttribute('text-anchor','middle');
+      vlbl.setAttribute('class','bar-value-label');
+      vlbl.textContent = d.total;
+      g.appendChild(vlbl);
+    }
+
+    const glabel = document.createElementNS(svgNS,'text');
+    glabel.setAttribute('x', x+o.barW/2);
+    glabel.setAttribute('y', yBase+18);
+    glabel.setAttribute('text-anchor','middle');
+    glabel.setAttribute('class','axis-label');
+    glabel.textContent = d.label;
+    g.appendChild(glabel);
+  });
+
+  const baseline = document.createElementNS(svgNS,'line');
+  baseline.setAttribute('x1', o.padLeft); baseline.setAttribute('x2', width-o.padRight);
+  baseline.setAttribute('y1', yBase); baseline.setAttribute('y2', yBase);
+  baseline.setAttribute('class','baseline-line');
+  svg.appendChild(baseline);
+
+  container.appendChild(svg);
+}
+
+function openWeekModal(day){
+  document.getElementById('week-modal-title').textContent = day.label;
+  document.getElementById('week-modal-sub').textContent =
+    day.total+' atividade(s) · '+day.concluida+' concluída(s) · '+day.pendente+' em andamento/pendente(s)';
+  const body = document.getElementById('week-modal-body');
+  body.innerHTML = '';
+  if(day.acts.length===0){
+    const p = document.createElement('div');
+    p.className = 'empty-note';
+    p.textContent = 'Nenhuma atividade com início previsto neste dia.';
+    body.appendChild(p);
+  } else {
+    day.acts.slice()
+      .sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''))
+      .forEach(a=>{
+        const concluida = a.status==='concluído';
+        const chipClass = concluida ? 'chip-good' : (a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning':'chip-neutral');
+        const chipText = concluida ? 'Concluída' : (a.situacao || '—');
+        const row = document.createElement('div');
+        row.className = 'week-modal-row';
+        row.innerHTML =
+          '<div class="week-modal-row-main">'+
+            '<div class="week-modal-row-desc">'+(a.desc||'—')+'</div>'+
+            '<div class="week-modal-row-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h</div>'+
+          '</div>'+
+          '<span class="chip '+chipClass+'">'+chipText+'</span>';
+        body.appendChild(row);
+      });
+  }
+  document.getElementById('week-modal-overlay').classList.add('open');
+}
+function closeWeekModal(){
+  document.getElementById('week-modal-overlay').classList.remove('open');
+}
+document.getElementById('week-modal-close').addEventListener('click', closeWeekModal);
+document.getElementById('week-modal-overlay').addEventListener('click', (e)=>{
+  if(e.target.id==='week-modal-overlay') closeWeekModal();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape') closeWeekModal();
+});
+
 // ---------- horizontal bar list (tipo de atividade da semana) ----------
 function buildHBarList(container, items, opts){
   container.innerHTML='';
@@ -688,20 +859,22 @@ function render(){
   const weekdayNames = ['Seg','Ter','Qua','Qui','Sex'];
   const actsThisWeek = DATA.acts.filter(a=> a.ini && a.ini>=weekdayIsos[0] && a.ini<=weekdayIsos[4]);
 
-  // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex)
-  const dayCounts = {};
-  actsThisWeek.forEach(a=>{ dayCounts[a.ini] = (dayCounts[a.ini]||0)+1; });
-  const semanaItems = weekdayIsos.map((iso,i)=>({
-    label: weekdayNames[i]+' '+fmtDateBR(iso).slice(0,5),
-    value: dayCounts[iso]||0,
-    iso
-  }));
-  document.getElementById('semana-hint').textContent = 'semana de '+fmtDateBR(wk.start)+' a '+fmtDateBR(addDaysIso(wk.start,4));
-  buildBarChart(document.getElementById('chart-semana-wrap'), semanaItems, {
-    barW:64, gap:28, height:220, padLeft:16, padBottom:32, rotateLabels:false,
-    colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
-    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s) com início previsto'
+  // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex),
+  // empilhado em concluída x pendente — clicar num dia abre a lista de atividades
+  const weekDays = weekdayIsos.map((iso,i)=>{
+    const acts = actsThisWeek.filter(a=> a.ini===iso);
+    const concluida = acts.filter(a=> a.status==='concluído').length;
+    return {
+      iso,
+      label: weekdayNames[i]+' '+fmtDateBR(iso).slice(0,5),
+      acts,
+      concluida,
+      pendente: acts.length-concluida,
+      total: acts.length
+    };
   });
+  document.getElementById('semana-hint').textContent = 'semana de '+fmtDateBR(wk.start)+' a '+fmtDateBR(addDaysIso(wk.start,4));
+  buildWeekChart(document.getElementById('chart-semana-wrap'), weekDays);
 
   // chart 3: tipo de atividade programada para a semana corrente
   const tipoCounts = {};

@@ -204,6 +204,20 @@
   .hbar-fill{height:100%;border-radius:5px;background:var(--series-1);min-width:3px;}
   .hbar-value{font-size:12.5px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;text-align:right;min-width:1.6em;}
 
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,10,10,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:80;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);max-width:480px;width:100%;max-height:78vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex:none;}
+  .modal-head h3{margin:0 0 2px;font-size:15px;font-weight:700;}
+  .modal-close{background:none;border:none;font-size:22px;line-height:1;cursor:pointer;color:var(--text-muted);padding:0 2px;}
+  .modal-close:hover{color:var(--text-primary);}
+  .modal-body{overflow-y:auto;padding:6px 18px 16px;display:flex;flex-direction:column;}
+  .week-modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .week-modal-row:last-child{border-bottom:none;}
+  .week-modal-row-main{min-width:0;}
+  .week-modal-row-desc{font-size:12.5px;font-weight:600;color:var(--text-primary);}
+  .week-modal-row-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+
   .tooltip{
     position:fixed;
     pointer-events:none;
@@ -340,13 +354,26 @@
       </div>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades por Local</h2>
+        <span class="hint" id="local-hint"></span>
+      </div>
+      <div class="chart-scroll" id="chart-local-wrap"></div>
+    </section>
+
     <section class="charts">
       <div class="panel">
         <div class="panel-head">
-          <h2>Atividades por Local</h2>
-          <span class="hint" id="local-hint"></span>
+          <h2>Atividades da Semana</h2>
+          <span class="hint" id="semana-hint"></span>
         </div>
-        <div class="chart-scroll" id="chart-local-wrap"></div>
+        <div class="chart-scroll" id="chart-semana-wrap"></div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--good)"></span>Concluída</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--series-1)"></span>Programada / em andamento</div>
+        </div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado. Clique em um dia para ver as atividades.</div>
       </div>
 
       <div class="panel">
@@ -357,15 +384,6 @@
         <div id="tipo-semana-wrap"></div>
         <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
       </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Atividades da Semana</h2>
-        <span class="hint" id="semana-hint"></span>
-      </div>
-      <div class="chart-scroll" id="chart-semana-wrap"></div>
-      <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
     </section>
 
     <section class="panel">
@@ -391,6 +409,19 @@
 </div>
 
 <div class="tooltip" id="tooltip"></div>
+
+<div class="modal-overlay" id="week-modal-overlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="week-modal-title">
+    <div class="modal-head">
+      <div>
+        <h3 id="week-modal-title">Dia</h3>
+        <span class="hint" id="week-modal-sub"></span>
+      </div>
+      <button class="modal-close" id="week-modal-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body" id="week-modal-body"></div>
+  </div>
+</div>
 
 <script>
 const DATA = {"acts":[{"id":1,"desc":"Teste de seletividade Lógica em Campo","local":"SU-035","ini":"2025-06-12","fim":"2025-06-15","horas":16,"situacao":"Concluído","status":"concluído","obs":null},{"id":2,"desc":"Teste de seletividade Lógica em Campo","local":"SU-080","ini":"2026-09-11","fim":"2026-09-11","horas":16,"situacao":"Atrasado","status":"em andamento","obs":"Pendente teste, não havia acompanhamento, Porém seletividade lógica foi implementada pela superfície"},{"id":3,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-11","fim":"2026-09-11","horas":1,"situacao":"Atrasado","status":"pendente","obs":"Não houve acompanhamento"},{"id":4,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-11","fim":"2026-09-11","horas":1,"situacao":"Atrasado","status":"pendente","obs":"Não houve acompanhamento"},{"id":5,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-11","fim":"2026-09-11","horas":1,"situacao":"Atrasado","status":"pendente","obs":"Não houve acompanhamento"},{"id":6,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-11","fim":"2026-09-11","horas":1,"situacao":"Atrasado","status":"pendente","obs":"Não houve acompanhamento"},{"id":7,"desc":"Retrofit Relé Sepam para SEL851 (Relé Sepam sem senha de acesso)","local":"SU-081","ini":"2026-09-14","fim":"2026-09-16","horas":24,"situacao":"Atrasado","status":"pendente","obs":"Análise de falha de eventos"},{"id":8,"desc":"Retrofit Relé Sepam para SEL851","local":"SU-071","ini":"2026-09-17","fim":"2026-09-21","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":9,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":10,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":11,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":12,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":13,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":14,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-080","ini":"2026-09-22","fim":"2026-09-22","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":15,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":16,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":17,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":18,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":19,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":20,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-23","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":21,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-24","fim":"2026-09-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":22,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-24","fim":"2026-09-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":23,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-24","fim":"2026-09-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":24,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-24","fim":"2026-09-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":25,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-035","ini":"2026-09-24","fim":"2026-09-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":26,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-034","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":27,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-034","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":28,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-038","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":29,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-038","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":30,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-037","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":31,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-037","ini":"2026-09-25","fim":"2026-09-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":32,"desc":"Implementar novo estudo SU97","local":"SU-097","ini":"2026-09-28","fim":"2026-09-28","horas":2,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":33,"desc":"Concluir instalação de fibra detectora de arco nos cubiculos AT","local":"SU-007","ini":"2026-09-28","fim":"2026-09-28","horas":6,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":34,"desc":"Retrofit Relé Sepam para SEL851","local":"SU-064","ini":"2026-09-29","fim":"2026-10-01","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":35,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-079","ini":"2026-10-01","fim":"2026-10-01","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":36,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-079","ini":"2026-10-01","fim":"2026-10-01","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":37,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-059","ini":"2026-10-01","fim":"2026-10-01","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":38,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-059","ini":"2026-10-01","fim":"2026-10-01","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":39,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-042","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":40,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-042","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":41,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-043","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":42,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-043","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":43,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-045","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":44,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-045","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":45,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SE-230","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":46,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SE-230","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":47,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SE-230","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":48,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SE-230","ini":"2026-10-02","fim":"2026-10-02","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":49,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-046","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":50,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-046","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":51,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-048","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":52,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-048","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":53,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-049","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":54,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-049","ini":"2026-10-05","fim":"2026-10-05","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":55,"desc":"Retrofit Relé Reyrolle para SEL851","local":"SU-074","ini":"2026-10-06","fim":"2026-10-08","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":56,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-087","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":57,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-087","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":58,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-095","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":59,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-095","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":60,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-097","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":61,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-097","ini":"2026-10-09","fim":"2026-10-09","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":62,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-058","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":63,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-058","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":64,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-053","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":65,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-053","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":66,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-054","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":67,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-054","ini":"2026-10-10","fim":"2026-10-10","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":68,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-081","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":69,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-081","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":70,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-084","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":71,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-084","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":72,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-088","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":73,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-088","ini":"2026-10-11","fim":"2026-10-11","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":74,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-052","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":75,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-052","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":76,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-056","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":77,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-056","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":78,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-065","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":79,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-065","ini":"2026-10-12","fim":"2026-10-12","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":80,"desc":"Retrofit Relé Reyrolle para SEL851","local":"SU-075","ini":"2026-10-13","fim":"2026-10-15","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":81,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-076","ini":"2026-10-16","fim":"2026-10-16","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":82,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-076","ini":"2026-10-16","fim":"2026-10-16","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":83,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-072","ini":"2026-10-16","fim":"2026-10-16","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":84,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-072","ini":"2026-10-16","fim":"2026-10-16","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":85,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-100","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":86,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-100","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":87,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-090","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":88,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-090","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":89,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-101","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":90,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-101","ini":"2026-10-17","fim":"2026-10-17","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":91,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-085","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":92,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-085","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":93,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-077","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":94,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-077","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":95,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-086","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":96,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-086","ini":"2026-10-18","fim":"2026-10-18","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":97,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-089","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":98,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-089","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":99,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-083","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":100,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-083","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":101,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-082","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":102,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-082","ini":"2026-10-19","fim":"2026-10-19","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":103,"desc":"Retrofit Relé Sepam para SEL851","local":"SU-20PS","ini":"2026-10-20","fim":"2026-10-22","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":104,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-066","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":105,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-066","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":106,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-073","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":107,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-073","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":108,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-069","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":109,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-069","ini":"2026-10-23","fim":"2026-10-23","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":110,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-060","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":111,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-060","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":112,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-057","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":113,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-057","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":114,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-078","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":115,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-078","ini":"2026-10-24","fim":"2026-10-24","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":116,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-020","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":117,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-024","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":118,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-024","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":119,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-024","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":120,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-024","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":121,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-024","ini":"2026-10-25","fim":"2026-10-25","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":122,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-062","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":123,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-062","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":124,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-068","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":125,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-068","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":126,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-061","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":127,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-061","ini":"2026-10-26","fim":"2026-10-26","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":128,"desc":"Retrofit Relé PEXTRON  para SEL851","local":"SU-029","ini":"2026-10-27","fim":"2026-10-29","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":129,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-007","ini":"2026-10-30","fim":"2026-10-30","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":130,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-007","ini":"2026-10-30","fim":"2026-10-30","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":131,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-014","ini":"2026-10-30","fim":"2026-10-30","horas":1,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":132,"desc":"Retrofit Relé Sepam para SEL851","local":"SU-070","ini":"2026-11-03","fim":"2026-11-05","horas":24,"situacao":"No prazo","status":"não iniciado","obs":null},{"id":133,"desc":"Instalação de Fibra","local":"SU-054","ini":null,"fim":null,"horas":8,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":134,"desc":"Sistema de acionamento eletrônico, engenharia recomenda utilização do disparador mecânico em nossas instalações.","local":"SU-091","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":135,"desc":"Identificado que as fibras de detecção de arco do cubículo k-02(nível seguinte)estão em falha, não passaram no teste do software.","local":"SU-086","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":136,"desc":"Fibras de deteção arco do cubiculo nível seguinte desabilitada no relé e uma rompida.","local":"SU-086","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":137,"desc":"Correção aterramento cabo AT tc neutro","local":"SU-064","ini":null,"fim":null,"horas":6,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":138,"desc":"Correção aterramento cabo AT tc neutro","local":"SU-071","ini":null,"fim":null,"horas":6,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":139,"desc":"Detectado falta de fase nos TP´s de medição de sinal de barra dos cubículos.","local":"SU-064","ini":null,"fim":null,"horas":8,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":140,"desc":"Identificado que os TP´s de medição de barra estão com falta de fase.","local":"SU-058","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":141,"desc":"Identificado que os TP´s de medição de barra estão com falta de fase.","local":"SU-053","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":142,"desc":"Identificado que os TP´s de medição de barra estão com falta de fase.","local":"SU-054","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":143,"desc":"Disjuntor Geral apresentando falha (sensor de corrente N; sensor de contato)","local":"SU-082","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":144,"desc":"Diagrama com dados do TC de fase incorretos (CUB-02).","local":"SU-012","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":145,"desc":"Diagrama desatualizado.","local":"SU-086","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":146,"desc":"Identificado que o diagrama do CCM BT disponível em campo está incompativel com painel instalado.","local":"SU-034","ini":null,"fim":null,"horas":4,"situacao":"A Programar","status":"pendente","obs":"Junto a preventiva"},{"id":147,"desc":"Fibra danificada, relé com erro de fibra (cubículo ALM-SUB29).","local":"SU-013","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":148,"desc":"Não possui fibra instalada (cubículo ALM-SUB41).","local":"SU-012","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":149,"desc":"Fibra danificada, relé com erro de fibra (cubículo ENTRADA).","local":"SU-029","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":150,"desc":"Não possui fibra instalada (cubículo ALM-SUB12).","local":"SU-029","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":151,"desc":"Não possui fibra instalada (cubículo ALM-TRAFO).","local":"SU-029","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":152,"desc":"Sem fibra de detecção de arco elétrico (cubículo ALM-NIV.SEG).","local":"SU-063","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":153,"desc":"Sem fibra de detecção de arco elétrico (cubículo ALM-TRAFO LOCAL TR-53).","local":"SU-063","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":154,"desc":"Sem fibra de detecção de arco elétrico instalada (cubículo ALM-TR26).","local":"SU-038","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":155,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-057","ini":null,"fim":null,"horas":1,"situacao":"A Programar","status":"pendente","obs":null},{"id":156,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-057","ini":null,"fim":null,"horas":1,"situacao":"A Programar","status":"pendente","obs":null},{"id":157,"desc":"Verificar se fibras foram instaladas e realizar testes","local":"SU-020","ini":null,"fim":null,"horas":1,"situacao":"A Programar","status":"pendente","obs":null},{"id":158,"desc":"Sem relé de detecção de arco elétrico (SCHNEIDER P3, cubículo ALM-TRAFO LOCAL).","local":"SU-078","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":159,"desc":"Sem relé de detecção de arco elétrico (SEPAM S40, cubículo ALM-TRAFO).","local":"SU-049","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null},{"id":160,"desc":"Sem relé de detecção de arco elétrico (SEPAM S40, cubículo ALM-NIV-SEG).","local":"SU-049","ini":null,"fim":null,"horas":0,"situacao":"A Programar","status":"pendente","obs":null}],"carga":[{"data":"2025-06-12","tarefas":1,"horas":4.19,"situacao":"OK"},{"data":"2026-09-11","tarefas":5,"horas":20.75,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-09-14","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-09-17","tarefas":1,"horas":4.95,"situacao":"OK"},{"data":"2026-09-22","tarefas":6,"horas":6.75,"situacao":"OK"},{"data":"2026-09-23","tarefas":6,"horas":6.75,"situacao":"OK"},{"data":"2026-09-24","tarefas":4,"horas":4,"situacao":"OK"},{"data":"2026-09-25","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-09-28","tarefas":2,"horas":9.5,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-09-29","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-01","tarefas":5,"horas":13.75,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-02","tarefas":10,"horas":13,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-05","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-06","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-09","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-10","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-11","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-12","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-13","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-16","tarefas":4,"horas":5.5,"situacao":"OK"},{"data":"2026-10-17","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-18","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-19","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-20","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-23","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-24","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-25","tarefas":6,"horas":7.5,"situacao":"OK"},{"data":"2026-10-26","tarefas":6,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-27","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"},{"data":"2026-10-30","tarefas":3,"horas":4.5,"situacao":"OK"},{"data":"2026-11-03","tarefas":1,"horas":8.25,"situacao":"⚠ Sobrecarga (>8h)"}]};
@@ -598,6 +629,146 @@ function buildBarChart(container, items, opts){
   container.appendChild(svg);
 }
 
+// ---------- gráfico compacto e clicável: atividades da semana (concluída x pendente) ----------
+function buildWeekChart(container, days, opts){
+  container.innerHTML='';
+  const o = Object.assign({ barW:42, gap:20, height:132, padTop:22, padBottom:26, padLeft:6, padRight:6 }, opts);
+  const maxVal = Math.max(...days.map(d=>d.total), 1) * 1.25;
+  const plotH = o.height - o.padTop - o.padBottom;
+  const width = o.padLeft + o.padRight + days.length*(o.barW+o.gap);
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS,'svg');
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', o.height+6);
+  svg.setAttribute('viewBox', '0 0 '+width+' '+(o.height+6));
+
+  const good = getComputedStyle(document.body).getPropertyValue('--good').trim();
+  const accent = getComputedStyle(document.body).getPropertyValue('--series-1').trim();
+  const borderCol = getComputedStyle(document.body).getPropertyValue('--border').trim();
+  const yBase = o.padTop + plotH;
+
+  [0,0.5,1].forEach(f=>{
+    const y = o.padTop + plotH*(1-f);
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+  });
+
+  days.forEach((d,i)=>{
+    const x = o.padLeft + i*(o.barW+o.gap);
+    const hConc = maxVal>0 ? (d.concluida/maxVal)*plotH : 0;
+    const hPend = maxVal>0 ? (d.pendente/maxVal)*plotH : 0;
+
+    // grupo da coluna inteira (área de clique + barras + rótulo): o listener fica no
+    // grupo, não em cada retângulo, para o clique funcionar em cima da barra também
+    const g = document.createElementNS(svgNS,'g');
+    g.style.cursor='pointer';
+    g.addEventListener('click', ()=> openWeekModal(d));
+    g.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY,
+      '<b>'+d.label+'</b><br>'+fmtInt(d.concluida)+' concluída(s)<br>'+fmtInt(d.pendente)+' em andamento/pendente(s)<br><i>clique para ver a lista</i>'));
+    g.addEventListener('mouseleave', hideTip);
+    svg.appendChild(g);
+
+    const hit = document.createElementNS(svgNS,'rect');
+    hit.setAttribute('x', x-o.gap/2); hit.setAttribute('y', 0);
+    hit.setAttribute('width', o.barW+o.gap); hit.setAttribute('height', o.height+6);
+    hit.setAttribute('fill','transparent');
+    g.appendChild(hit);
+
+    if(d.pendente>0){
+      const rectP = document.createElementNS(svgNS,'rect');
+      rectP.setAttribute('x', x); rectP.setAttribute('width', o.barW);
+      rectP.setAttribute('y', yBase-hConc-hPend); rectP.setAttribute('height', Math.max(hPend,1.5));
+      rectP.setAttribute('rx', 3); rectP.setAttribute('fill', accent);
+      g.appendChild(rectP);
+    }
+    if(d.concluida>0){
+      const rectC = document.createElementNS(svgNS,'rect');
+      rectC.setAttribute('x', x); rectC.setAttribute('width', o.barW);
+      rectC.setAttribute('y', yBase-hConc); rectC.setAttribute('height', Math.max(hConc,1.5));
+      rectC.setAttribute('rx', 3); rectC.setAttribute('fill', good);
+      g.appendChild(rectC);
+    }
+    if(d.total===0){
+      const rectZ = document.createElementNS(svgNS,'rect');
+      rectZ.setAttribute('x', x); rectZ.setAttribute('width', o.barW);
+      rectZ.setAttribute('y', yBase-2); rectZ.setAttribute('height', 2);
+      rectZ.setAttribute('rx', 1); rectZ.setAttribute('fill', borderCol);
+      g.appendChild(rectZ);
+    }
+
+    if(d.total>0){
+      const vlbl = document.createElementNS(svgNS,'text');
+      vlbl.setAttribute('x', x+o.barW/2);
+      vlbl.setAttribute('y', yBase-hConc-hPend-6);
+      vlbl.setAttribute('text-anchor','middle');
+      vlbl.setAttribute('class','bar-value-label');
+      vlbl.textContent = d.total;
+      g.appendChild(vlbl);
+    }
+
+    const glabel = document.createElementNS(svgNS,'text');
+    glabel.setAttribute('x', x+o.barW/2);
+    glabel.setAttribute('y', yBase+18);
+    glabel.setAttribute('text-anchor','middle');
+    glabel.setAttribute('class','axis-label');
+    glabel.textContent = d.label;
+    g.appendChild(glabel);
+  });
+
+  const baseline = document.createElementNS(svgNS,'line');
+  baseline.setAttribute('x1', o.padLeft); baseline.setAttribute('x2', width-o.padRight);
+  baseline.setAttribute('y1', yBase); baseline.setAttribute('y2', yBase);
+  baseline.setAttribute('class','baseline-line');
+  svg.appendChild(baseline);
+
+  container.appendChild(svg);
+}
+
+function openWeekModal(day){
+  document.getElementById('week-modal-title').textContent = day.label;
+  document.getElementById('week-modal-sub').textContent =
+    day.total+' atividade(s) · '+day.concluida+' concluída(s) · '+day.pendente+' em andamento/pendente(s)';
+  const body = document.getElementById('week-modal-body');
+  body.innerHTML = '';
+  if(day.acts.length===0){
+    const p = document.createElement('div');
+    p.className = 'empty-note';
+    p.textContent = 'Nenhuma atividade com início previsto neste dia.';
+    body.appendChild(p);
+  } else {
+    day.acts.slice()
+      .sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''))
+      .forEach(a=>{
+        const concluida = a.status==='concluído';
+        const chipClass = concluida ? 'chip-good' : (a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning':'chip-neutral');
+        const chipText = concluida ? 'Concluída' : (a.situacao || '—');
+        const row = document.createElement('div');
+        row.className = 'week-modal-row';
+        row.innerHTML =
+          '<div class="week-modal-row-main">'+
+            '<div class="week-modal-row-desc">'+(a.desc||'—')+'</div>'+
+            '<div class="week-modal-row-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h</div>'+
+          '</div>'+
+          '<span class="chip '+chipClass+'">'+chipText+'</span>';
+        body.appendChild(row);
+      });
+  }
+  document.getElementById('week-modal-overlay').classList.add('open');
+}
+function closeWeekModal(){
+  document.getElementById('week-modal-overlay').classList.remove('open');
+}
+document.getElementById('week-modal-close').addEventListener('click', closeWeekModal);
+document.getElementById('week-modal-overlay').addEventListener('click', (e)=>{
+  if(e.target.id==='week-modal-overlay') closeWeekModal();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape') closeWeekModal();
+});
+
 // ---------- horizontal bar list (tipo de atividade da semana) ----------
 function buildHBarList(container, items, opts){
   container.innerHTML='';
@@ -688,20 +859,22 @@ function render(){
   const weekdayNames = ['Seg','Ter','Qua','Qui','Sex'];
   const actsThisWeek = DATA.acts.filter(a=> a.ini && a.ini>=weekdayIsos[0] && a.ini<=weekdayIsos[4]);
 
-  // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex)
-  const dayCounts = {};
-  actsThisWeek.forEach(a=>{ dayCounts[a.ini] = (dayCounts[a.ini]||0)+1; });
-  const semanaItems = weekdayIsos.map((iso,i)=>({
-    label: weekdayNames[i]+' '+fmtDateBR(iso).slice(0,5),
-    value: dayCounts[iso]||0,
-    iso
-  }));
-  document.getElementById('semana-hint').textContent = 'semana de '+fmtDateBR(wk.start)+' a '+fmtDateBR(addDaysIso(wk.start,4));
-  buildBarChart(document.getElementById('chart-semana-wrap'), semanaItems, {
-    barW:64, gap:28, height:220, padLeft:16, padBottom:32, rotateLabels:false,
-    colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
-    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s) com início previsto'
+  // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex),
+  // empilhado em concluída x pendente — clicar num dia abre a lista de atividades
+  const weekDays = weekdayIsos.map((iso,i)=>{
+    const acts = actsThisWeek.filter(a=> a.ini===iso);
+    const concluida = acts.filter(a=> a.status==='concluído').length;
+    return {
+      iso,
+      label: weekdayNames[i]+' '+fmtDateBR(iso).slice(0,5),
+      acts,
+      concluida,
+      pendente: acts.length-concluida,
+      total: acts.length
+    };
   });
+  document.getElementById('semana-hint').textContent = 'semana de '+fmtDateBR(wk.start)+' a '+fmtDateBR(addDaysIso(wk.start,4));
+  buildWeekChart(document.getElementById('chart-semana-wrap'), weekDays);
 
   // chart 3: tipo de atividade programada para a semana corrente
   const tipoCounts = {};
