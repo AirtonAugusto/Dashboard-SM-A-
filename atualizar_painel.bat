@@ -4,12 +4,16 @@ setlocal
 cd /d "%~dp0"
 
 set PYEXE=
-where python >nul 2>&1 && set PYEXE=python
+py --version >nul 2>&1
+if not errorlevel 1 set PYEXE=py
+
 if not defined PYEXE (
-  where py >nul 2>&1 && set PYEXE=py
+  python --version >nul 2>&1
+  if not errorlevel 1 set PYEXE=python
 )
+
 if not defined PYEXE (
-  echo ERRO: Python nao foi encontrado no PATH.
+  echo ERRO: Python nao foi encontrado.
   echo Instale o Python em https://www.python.org/downloads/ e tente novamente.
   pause
   exit /b 1
