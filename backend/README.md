@@ -12,23 +12,7 @@ Isto é adicional ao painel estático que já existe neste repositório
 continua funcionando exatamente como hoje; este backend é o próximo passo,
 para quem precisa de login, papéis e edição pela web.
 
-## Teste rápido (sem instalar MySQL nem Docker)
-
-Só para ver a interface funcionando, com dados de exemplo (não usa a
-planilha real nem o MySQL — é um banco SQLite temporário e descartável):
-
-- Dê duplo clique em **`testar_dashboard_web.bat`**, na raiz do
-  repositório (mesmo lugar do `atualizar_painel.bat`).
-- Ele instala as dependências (só na primeira vez), sobe a API e o
-  frontend, e abre o navegador sozinho em `http://localhost:5500/login.html`.
-- Credenciais impressas na janela: um usuário `GESTOR` e um `COLABORADOR`,
-  ambos com uma atividade de exemplo já cadastrada.
-- Para encerrar, feche a janela ou aperte Ctrl+C nela.
-
-Isso não é o setup de produção (que usa MySQL de verdade, ver abaixo) — é
-só para experimentar a tela antes de instalar tudo.
-
-## Rodando localmente (com MySQL, o setup real)
+## Rodando localmente
 
 1. Suba o MySQL (requer Docker):
    ```bash
@@ -62,8 +46,6 @@ só para experimentar a tela antes de instalar tudo.
 - `app/services/excel_import.py` — leitura da planilha protegida por
   file lock + gravação transacional no MySQL (upsert por `N°` da planilha).
 - `create_admin.py` — bootstrap do primeiro usuário GESTOR.
-- `testar_local.py` — sobe API + frontend com SQLite e dados de exemplo,
-  chamado por `../testar_dashboard_web.bat` (teste rápido, ver acima).
 
 ## O que este exemplo não cobre (fora do escopo desta entrega)
 
