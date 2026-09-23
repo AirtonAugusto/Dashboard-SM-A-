@@ -10,7 +10,8 @@ sem backend nem banco de dados — abre em qualquer navegador.
 > trás, veja `ARQUITETURA_DASHBOARD_WEB.md` (arquitetura completa),
 > `backend/` (API FastAPI funcional) e `frontend-example/` (telas de
 > exemplo). É adicional a este painel estático — o fluxo abaixo continua
-> valendo sem nenhuma mudança.
+> valendo sem nenhuma mudança. Para só dar uma olhada na interface, sem
+> instalar MySQL: dê duplo clique em `testar_dashboard_web.bat`.
 
 ## Estrutura
 

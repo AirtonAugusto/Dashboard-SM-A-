@@ -9,3 +9,8 @@ data/
 
 __pycache__/
 *.pyc
+
+# backend/ (API do dashboard web — ver ARQUITETURA_DASHBOARD_WEB.md)
+backend/.env
+backend/.venv/
+backend/*.db
