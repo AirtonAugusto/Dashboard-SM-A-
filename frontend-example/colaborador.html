@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minhas atividades — SM&amp;A</title>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>SM&amp;A</h1>
+    <p id="nome-usuario">Colaborador</p>
+    <button onclick="sair()">Sair</button>
+  </aside>
+  <main class="content">
+    <div class="card">
+      <h2>Minhas atividades</h2>
+      <table>
+        <thead>
+          <tr><th>Descrição</th><th>Local</th><th>Prazo</th><th>Status</th><th>Observação</th></tr>
+        </thead>
+        <tbody id="tabela-atividades"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  exigirLogin("COLABORADOR");
+  document.getElementById("nome-usuario").textContent = sessionStorage.getItem("sma_nome") || "Colaborador";
+
+  const STATUS = ["A programar", "Programado", "Em andamento", "Concluído"];
+
+  async function carregarAtividades() {
+    const atividades = await apiFetch("/api/atividades");
+    document.getElementById("tabela-atividades").innerHTML = atividades.map(a => `
+      <tr>
+        <td>${a.descricao}</td>
+        <td>${a.local ?? ""}</td>
+        <td>${a.data_fim_prevista ?? "-"}</td>
+        <td>
+          <select onchange="mudarStatus(${a.id}, this.value)">
+            ${STATUS.map(s => `<option value="${s}" ${s === a.status ? "selected" : ""}>${s}</option>`).join("")}
+          </select>
+        </td>
+        <td><button onclick="anexarObservacao(${a.id})">+ observação</button></td>
+      </tr>`).join("");
+  }
+
+  async function mudarStatus(atividadeId, novoStatus) {
+    await apiFetch(`/api/atividades/${atividadeId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: novoStatus }),
+    });
+  }
+
+  async function anexarObservacao(atividadeId) {
+    const texto = prompt("Observação de hoje:");
+    if (!texto) return;
+    await apiFetch(`/api/atividades/${atividadeId}/observacoes`, {
+      method: "POST",
+      body: JSON.stringify({ texto }),
+    });
+    alert("Observação registrada.");
+  }
+
+  carregarAtividades();
+</script>
+</body>
+</html>

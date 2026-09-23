@@ -1,0 +1,16 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_senha_local
+      MYSQL_DATABASE: sma_dashboard
+      MYSQL_USER: sma_app
+      MYSQL_PASSWORD: senha_forte
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

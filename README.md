@@ -5,6 +5,13 @@ Engenharia / AngloGold), gerado a partir da planilha `ProgramaçãoSMA.xlsx`.
 É um único arquivo HTML autocontido (HTML + CSS + JS + dados embutidos),
 sem backend nem banco de dados — abre em qualquer navegador.
 
+> **Evolução em andamento:** para quem precisa de login, papéis
+> (Gestor/Colaborador) e edição pela web com um MySQL de verdade por
+> trás, veja `ARQUITETURA_DASHBOARD_WEB.md` (arquitetura completa),
+> `backend/` (API FastAPI funcional) e `frontend-example/` (telas de
+> exemplo). É adicional a este painel estático — o fluxo abaixo continua
+> valendo sem nenhuma mudança.
+
 ## Estrutura
 
 ```

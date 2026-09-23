@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar — Dashboard SM&amp;A</title>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <div class="login-box">
+    <h2>Programação SM&amp;A</h2>
+    <form id="form-login">
+      <label>E-mail</label>
+      <input type="email" id="email" required autocomplete="username">
+      <label>Senha</label>
+      <input type="password" id="senha" required autocomplete="current-password">
+      <button class="primary" type="submit">Entrar</button>
+      <p class="erro" id="erro"></p>
+    </form>
+  </div>
+
+  <script src="assets/api.js"></script>
+  <script>
+    document.getElementById("form-login").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      try {
+        const resp = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, senha }),
+        });
+        if (!resp.ok) throw new Error("E-mail ou senha inválidos.");
+        const dados = await resp.json();
+        sessionStorage.setItem("sma_token", dados.access_token);
+        sessionStorage.setItem("sma_role", dados.role);
+        sessionStorage.setItem("sma_nome", dados.nome);
+        window.location.href = dados.role === "GESTOR" ? "gestor.html" : "colaborador.html";
+      } catch (e) {
+        document.getElementById("erro").textContent = e.message;
+      }
+    });
+  </script>
+</body>
+</html>
