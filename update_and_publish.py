@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 # Caminho completo da planilha no seu computador.
-XLSX_PATH = r"C:\Users\CARDOZO\Documents\Airton Augusto\Programação(SM&A).xlsx"
+XLSX_PATH = r"C:\Users\CARDOZO\Documents\Airton Augusto\Programação (SM&A).xlsx"
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 
