@@ -32,7 +32,17 @@ def main():
     if not os.path.exists(XLSX_PATH):
         print("ERRO: não encontrei a planilha em:")
         print("  " + XLSX_PATH)
-        print("Confira se o caminho ainda está certo (edite XLSX_PATH em update_and_publish.py se ela mudou de lugar).")
+        print()
+        print("Causas mais comuns:")
+        print("  1. O OneDrive mudou o caminho da pasta Documentos sem avisar")
+        print('     (ex: virou "C:\\Users\\CARDOZO\\OneDrive\\Documents\\..." em vez de')
+        print('     "C:\\Users\\CARDOZO\\Documents\\...").')
+        print("  2. O arquivo foi renomeado, movido, ou o nome tem um acento/caractere")
+        print("     diferente do que está gravado aqui.")
+        print()
+        print("Como corrigir: no Explorador de Arquivos, clique com o botão direito na")
+        print('planilha e escolha "Copiar como caminho"; depois abra update_and_publish.py')
+        print("num editor de texto e cole esse caminho na linha XLSX_PATH (perto do topo).")
         sys.exit(1)
 
     print("=" * 60)
