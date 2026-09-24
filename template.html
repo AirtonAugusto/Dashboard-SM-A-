@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Programação SM&A</title>
 <style>
   :root{
@@ -146,7 +147,7 @@
 
   .kpis{
     display:grid;
-    grid-template-columns:repeat(6,1fr);
+    grid-template-columns:repeat(7,1fr);
     gap:12px;
   }
   .kpi{
@@ -262,10 +263,46 @@
   .grid-line{stroke:var(--gridline);stroke-width:1;}
   .baseline-line{stroke:var(--baseline);stroke-width:1;}
 
+  .tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-top:2px;}
+  .tab-btn{
+    background:none;border:none;padding:10px 4px;font-size:13.5px;font-weight:700;color:var(--text-muted);
+    cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--accent-ink);border-bottom-color:var(--accent);}
+  .tab-btn:hover:not(.active){color:var(--text-primary);}
+  .view{display:none;flex-direction:column;gap:20px;}
+  .view.active{display:flex;}
+
+  .colab-field{display:flex;flex-direction:column;gap:4px;}
+  .colab-field label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);}
+  .colab-field input, .colab-field textarea{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-size:13px;font-family:inherit;color:var(--text-primary);outline:none;
+  }
+  .colab-field input:focus, .colab-field textarea:focus{border-color:var(--accent);}
+  .colab-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end;}
+  .colab-btn{
+    background:var(--accent);border:none;color:#1a1a1a;font-weight:700;
+    padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;
+  }
+  .colab-btn:hover{filter:brightness(1.05);}
+  .colab-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-weight:600;}
+  .colab-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .colab-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .colab-item:last-child{margin-bottom:0;}
+  .colab-item-desc{font-weight:700;font-size:13.5px;}
+  .colab-item-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .colab-item-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+  .colab-just-box{display:none;gap:8px;margin-top:10px;}
+  .colab-just-box.open{display:flex;}
+  .colab-just-box textarea{flex:1;min-height:56px;resize:vertical;}
+  .colab-just-existing{font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-radius:8px;padding:8px 10px;margin-top:10px;}
+
   @media (max-width: 980px){
     .app{flex-direction:column;}
     .sidebar{position:relative;flex:0 0 auto;width:100%;min-height:0;}
-    .kpis{grid-template-columns:repeat(3,1fr);}
+    .kpis{grid-template-columns:repeat(4,1fr);}
     .charts{grid-template-columns:1fr;}
     .content{padding:18px 16px 36px;}
   }
@@ -321,6 +358,12 @@
       <div class="meta">Período filtrado: <b id="meta-period">—</b><span id="meta-week-badge"></span> · <b id="meta-count">0</b> atividades exibidas</div>
     </div>
 
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="painel">Painel</button>
+      <button class="tab-btn" data-tab="colaborador">Colaborador</button>
+    </div>
+
+    <div id="view-painel" class="view active">
     <section class="kpis">
       <div class="kpi tone-accent">
         <div class="label">Total Atividades</div>
@@ -352,6 +395,11 @@
         <div class="value" id="kpi-horas">0</div>
         <div class="sub">soma do período</div>
       </div>
+      <div class="kpi tone-good">
+        <div class="label">% Concluído</div>
+        <div class="value" id="kpi-pct-concluido">0%</div>
+        <div class="sub">no filtro atual</div>
+      </div>
     </section>
 
     <section class="panel">
@@ -359,8 +407,17 @@
         <h2>Atividades por Local</h2>
         <span class="hint" id="local-hint"></span>
       </div>
-      <div class="chart-scroll" id="chart-local-wrap"></div>
-      <div class="chart-caption">Clique em uma barra para ver as atividades daquele local.</div>
+      <div id="chart-local-wrap"></div>
+      <div class="chart-caption">Clique em um local para ver as atividades daquele local.</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Atividades por Responsável</h2>
+        <span class="hint" id="resp-hint"></span>
+      </div>
+      <div id="chart-resp-wrap"></div>
+      <div class="chart-caption">Clique em um nome para ver as atividades dessa pessoa. "Não atribuído" agrupa atividades sem responsável definido.</div>
     </section>
 
     <section class="charts">
@@ -427,6 +484,88 @@
         </table>
       </div>
     </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Justificativas</h2>
+        <span class="hint" id="just-hint"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="obs-table">
+          <thead>
+            <tr>
+              <th>Local</th>
+              <th>Descrição</th>
+              <th>Responsável</th>
+              <th>Justificativa</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody id="just-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+    </div>
+
+    <div id="view-colaborador" class="view">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Área do Colaborador</h2>
+        </div>
+        <div id="colab-offline-notice" class="empty-note" style="display:none;">
+          Esta área só funciona quando o painel é aberto localmente por <b>abrir_colaborador.bat</b>
+          (não pelo link público). Veja o README do projeto para instruções.
+        </div>
+        <div id="colab-online-area" style="display:none;">
+          <div class="colab-field" style="max-width:320px;">
+            <label>Meu nome</label>
+            <input list="colab-nomes" id="colab-nome" placeholder="Digite ou escolha seu nome">
+            <datalist id="colab-nomes"></datalist>
+          </div>
+        </div>
+      </div>
+
+      <section class="panel colab-writable-panel" style="display:none;">
+        <div class="panel-head">
+          <h2>Minhas atividades pendentes</h2>
+          <span class="hint" id="colab-pendentes-hint"></span>
+        </div>
+        <div id="colab-pendentes-list"></div>
+      </section>
+
+      <section class="panel colab-writable-panel" style="display:none;">
+        <div class="panel-head">
+          <h2>Adicionar nova atividade</h2>
+        </div>
+        <form id="colab-form-nova" class="colab-form">
+          <div class="colab-field">
+            <label>Descrição</label>
+            <input type="text" id="colab-nova-desc" required>
+          </div>
+          <div class="colab-field">
+            <label>Local</label>
+            <input type="text" id="colab-nova-local">
+          </div>
+          <div class="colab-field">
+            <label>Prazo previsto</label>
+            <input type="date" id="colab-nova-fim">
+          </div>
+          <div class="colab-field">
+            <label>Previsão de horas</label>
+            <input type="number" step="0.5" min="0" id="colab-nova-horas">
+          </div>
+          <button type="submit" class="colab-btn">Adicionar atividade</button>
+        </form>
+      </section>
+
+      <section class="panel colab-writable-panel" style="display:none;">
+        <div class="panel-head">
+          <h2>Minhas atividades concluídas</h2>
+          <span class="hint" id="colab-concluidas-hint"></span>
+        </div>
+        <div id="colab-concluidas-list"></div>
+      </section>
+    </div>
   </main>
 </div>
 
@@ -446,7 +585,21 @@
 </div>
 
 <script>
-const DATA = __DATA_JSON__;
+let DATA = __DATA_JSON__;
+
+// Categorias gerais reconhecidas na descrição da atividade (substring,
+// sem diferenciar maiúscula/minúscula) — usadas para o filtro "Atividade"
+// oferecer tanto opções individuais quanto opções gerais que reúnem
+// várias descrições parecidas no mesmo lugar. Para adicionar uma nova
+// categoria geral, é só acrescentar uma linha aqui.
+const CATEGORIAS = {
+  'Fibra': ['fibra'],
+  'Retrofit': ['retrofit'],
+};
+function categoriaCasa(categoria, desc){
+  const alvo = (desc||'').toLowerCase();
+  return (CATEGORIAS[categoria]||[]).some(kw=> alvo.includes(kw));
+}
 
 const tooltip = document.getElementById('tooltip');
 function showTip(x,y,html){
@@ -499,36 +652,76 @@ function getCurrentWeekRange(){
 }
 
 // ---------- populate filter options ----------
-const locals = [...new Set(DATA.acts.map(a=>a.local))].sort();
-const situacoes = [...new Set(DATA.acts.map(a=>a.situacao))].filter(Boolean);
 const situacaoOrder = ['Atrasado','A Programar','No prazo','Concluído'];
-situacoes.sort((a,b)=> situacaoOrder.indexOf(a)-situacaoOrder.indexOf(b));
-const descCounts = {};
-DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
-const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
-
 const selLocal = document.getElementById('f-local');
-locals.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; selLocal.appendChild(o); });
-
 const selSituacao = document.getElementById('f-situacao');
-situacoes.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; selSituacao.appendChild(o); });
-
 const selAtividade = document.getElementById('f-atividade');
-descs.forEach(d=>{
-  const o=document.createElement('option'); o.value=d;
-  const label = d.length>52 ? d.slice(0,50)+'…' : d;
-  o.textContent = label+' ('+descCounts[d]+')';
-  o.title = d;
-  selAtividade.appendChild(o);
-});
-
-const allDates = DATA.acts.flatMap(a=>[a.ini,a.fim]).filter(Boolean).concat(DATA.carga.map(c=>c.data));
-const minDate = allDates.reduce((a,b)=> a<b?a:b);
-const maxDate = allDates.reduce((a,b)=> a>b?a:b);
 const inpStart = document.getElementById('f-date-start');
 const inpEnd = document.getElementById('f-date-end');
-inpStart.min = minDate; inpStart.max = maxDate;
-inpEnd.min = minDate; inpEnd.max = maxDate;
+let minDate, maxDate;
+
+// Reaproveitada tanto no carregamento inicial quanto sempre que a aba
+// Colaborador grava algo novo na planilha (nova atividade, novo
+// responsável) — assim os filtros já aparecem atualizados sem precisar
+// recarregar a página. `manterSelecao` preserva o valor escolhido pelo
+// usuário quando ele ainda existir na lista nova.
+function popularFiltros(manterSelecao){
+  const valLocal = manterSelecao ? selLocal.value : '';
+  const valSituacao = manterSelecao ? selSituacao.value : '';
+  const valAtividade = manterSelecao ? selAtividade.value : '';
+
+  const locals = [...new Set(DATA.acts.map(a=>a.local))].filter(Boolean).sort();
+  selLocal.innerHTML = '<option value="">Todos</option>';
+  locals.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; selLocal.appendChild(o); });
+  if(locals.includes(valLocal)) selLocal.value = valLocal;
+
+  const situacoes = [...new Set(DATA.acts.map(a=>a.situacao))].filter(Boolean);
+  situacoes.sort((a,b)=> situacaoOrder.indexOf(a)-situacaoOrder.indexOf(b));
+  selSituacao.innerHTML = '<option value="">Todos</option>';
+  situacoes.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; selSituacao.appendChild(o); });
+  if(situacoes.includes(valSituacao)) selSituacao.value = valSituacao;
+
+  const descCounts = {};
+  DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
+  const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
+
+  selAtividade.innerHTML = '<option value="">Todas</option>';
+  // Categorias gerais primeiro (ex: "Fibra" reúne toda descrição que
+  // contém "fibra"), depois as descrições individuais exatas — as duas
+  // formas de filtrar vivem no mesmo select, como pedido pelo gestor.
+  const catsPresentes = Object.keys(CATEGORIAS).filter(cat=> DATA.acts.some(a=> categoriaCasa(cat, a.desc)));
+  if(catsPresentes.length){
+    const grpGeral = document.createElement('optgroup');
+    grpGeral.label = 'Categorias gerais';
+    catsPresentes.forEach(cat=>{
+      const n = DATA.acts.filter(a=> categoriaCasa(cat, a.desc)).length;
+      const o=document.createElement('option'); o.value='cat:'+cat; o.textContent=cat+' — geral ('+n+')';
+      grpGeral.appendChild(o);
+    });
+    selAtividade.appendChild(grpGeral);
+  }
+  const grpInd = document.createElement('optgroup');
+  grpInd.label = 'Atividades individuais';
+  descs.forEach(d=>{
+    const o=document.createElement('option'); o.value=d;
+    const label = d.length>52 ? d.slice(0,50)+'…' : d;
+    o.textContent = label+' ('+descCounts[d]+')';
+    o.title = d;
+    grpInd.appendChild(o);
+  });
+  selAtividade.appendChild(grpInd);
+  if(valAtividade) selAtividade.value = valAtividade;
+
+  const allDates = DATA.acts.flatMap(a=>[a.ini,a.fim]).filter(Boolean).concat(DATA.carga.map(c=>c.data));
+  if(allDates.length){
+    minDate = allDates.reduce((a,b)=> a<b?a:b);
+    maxDate = allDates.reduce((a,b)=> a>b?a:b);
+    inpStart.min = minDate; inpStart.max = maxDate;
+    inpEnd.min = minDate; inpEnd.max = maxDate;
+  }
+}
+
+popularFiltros(false);
 
 // Padrão ao abrir o painel: semana atual (não o histórico inteiro) — cada visita recalcula
 // a semana com base na data do momento, então o filtro acompanha o calendário sozinho.
@@ -547,110 +740,6 @@ document.getElementById('btn-full-period').addEventListener('click', ()=>{
   inpStart.value=minDate; inpEnd.value=maxDate;
   render();
 });
-
-// ---------- bar chart builder (SVG) ----------
-function buildBarChart(container, items, opts){
-  container.innerHTML='';
-  if(items.length===0){
-    const p=document.createElement('div');
-    p.className='empty-note';
-    p.textContent='Nenhum dado para os filtros selecionados.';
-    container.appendChild(p);
-    return;
-  }
-  const o = Object.assign({
-    barW:26, gap:12, height:230, padTop:26, padBottom:44, padLeft:34, padRight:16,
-    colorOf:()=>getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
-    valueFmt:(v)=>fmtInt(v),
-    tooltipOf:(d)=>d.label+': '+fmtInt(d.value),
-    refLine:null, refLabel:'', rotateLabels:true, onClick:null
-  }, opts);
-
-  const maxVal = Math.max(...items.map(d=>d.value), o.refLine||0) * 1.18 || 1;
-  const plotH = o.height - o.padTop - o.padBottom;
-  const width = o.padLeft + o.padRight + items.length*(o.barW+o.gap);
-  const svgNS='http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS,'svg');
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', o.height+8);
-  svg.setAttribute('viewBox', '0 0 '+width+' '+(o.height+8));
-
-  // grid lines (0, 25%, 50%, 75%, 100% of maxVal)
-  [0,0.25,0.5,0.75,1].forEach(f=>{
-    const y = o.padTop + plotH*(1-f);
-    const line = document.createElementNS(svgNS,'line');
-    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
-    line.setAttribute('y1', y); line.setAttribute('y2', y);
-    line.setAttribute('class','grid-line');
-    svg.appendChild(line);
-  });
-
-  if(o.refLine){
-    const yRef = o.padTop + plotH*(1 - o.refLine/maxVal);
-    const line = document.createElementNS(svgNS,'line');
-    line.setAttribute('x1', o.padLeft); line.setAttribute('x2', width-o.padRight);
-    line.setAttribute('y1', yRef); line.setAttribute('y2', yRef);
-    line.setAttribute('stroke', getComputedStyle(document.body).getPropertyValue('--text-muted').trim());
-    line.setAttribute('stroke-width','1.5');
-    line.setAttribute('stroke-dasharray','4 4');
-    svg.appendChild(line);
-    const lbl = document.createElementNS(svgNS,'text');
-    lbl.setAttribute('x', width-o.padRight);
-    lbl.setAttribute('y', yRef-5);
-    lbl.setAttribute('text-anchor','end');
-    lbl.setAttribute('class','axis-label');
-    lbl.textContent = o.refLabel;
-    svg.appendChild(lbl);
-  }
-
-  items.forEach((d,i)=>{
-    const x = o.padLeft + i*(o.barW+o.gap);
-    const h = maxVal>0 ? (d.value/maxVal)*plotH : 0;
-    const y = o.padTop + plotH - h;
-    const rect = document.createElementNS(svgNS,'rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', y);
-    rect.setAttribute('width', o.barW); rect.setAttribute('height', Math.max(h,1.5));
-    rect.setAttribute('rx', 3);
-    rect.setAttribute('fill', o.colorOf(d));
-    rect.style.cursor='pointer';
-    rect.addEventListener('mousemove', (e)=> showTip(e.clientX, e.clientY, o.tooltipOf(d)));
-    rect.addEventListener('mouseleave', hideTip);
-    if(o.onClick){ rect.addEventListener('click', ()=> o.onClick(d)); }
-    svg.appendChild(rect);
-
-    if(d.value>0){
-      const vlbl = document.createElementNS(svgNS,'text');
-      vlbl.setAttribute('x', x+o.barW/2);
-      vlbl.setAttribute('y', y-6);
-      vlbl.setAttribute('text-anchor','middle');
-      vlbl.setAttribute('class','bar-value-label');
-      vlbl.textContent = o.valueFmt(d.value);
-      svg.appendChild(vlbl);
-    }
-
-    const glabel = document.createElementNS(svgNS,'text');
-    glabel.setAttribute('x', x+o.barW/2);
-    glabel.setAttribute('class','axis-label');
-    if(o.rotateLabels){
-      glabel.setAttribute('y', o.padTop+plotH+14);
-      glabel.setAttribute('text-anchor','end');
-      glabel.setAttribute('transform','rotate(-38 '+(x+o.barW/2)+' '+(o.padTop+plotH+14)+')');
-    } else {
-      glabel.setAttribute('y', o.padTop+plotH+20);
-      glabel.setAttribute('text-anchor','middle');
-    }
-    glabel.textContent = d.label;
-    svg.appendChild(glabel);
-  });
-
-  const baseline = document.createElementNS(svgNS,'line');
-  baseline.setAttribute('x1', o.padLeft); baseline.setAttribute('x2', width-o.padRight);
-  baseline.setAttribute('y1', o.padTop+plotH); baseline.setAttribute('y2', o.padTop+plotH);
-  baseline.setAttribute('class','baseline-line');
-  svg.appendChild(baseline);
-
-  container.appendChild(svg);
-}
 
 // ---------- gráfico compacto e clicável: atividades da semana (concluída x pendente) ----------
 function buildWeekChart(container, days, opts){
@@ -797,14 +886,14 @@ document.addEventListener('keydown', (e)=>{
 // ---------- horizontal bar list (tipo de atividade da semana) ----------
 function buildHBarList(container, items, opts){
   container.innerHTML='';
+  const o = Object.assign({ valueFmt:(v)=>fmtInt(v), onClick:null, emptyText:'Nenhum dado para os filtros selecionados.' }, opts);
   if(items.length===0){
     const p=document.createElement('div');
     p.className='empty-note';
-    p.textContent='Nenhuma atividade programada para esta semana.';
+    p.textContent=o.emptyText;
     container.appendChild(p);
     return;
   }
-  const o = Object.assign({ valueFmt:(v)=>fmtInt(v), onClick:null }, opts);
   const maxVal = Math.max(...items.map(d=>d.value)) || 1;
   const list = document.createElement('div');
   list.className = 'hbar-list';
@@ -835,7 +924,13 @@ function buildHBarList(container, items, opts){
 function passesFilters(a){
   if(selLocal.value && a.local!==selLocal.value) return false;
   if(selSituacao.value && a.situacao!==selSituacao.value) return false;
-  if(selAtividade.value && a.desc!==selAtividade.value) return false;
+  if(selAtividade.value){
+    if(selAtividade.value.startsWith('cat:')){
+      if(!categoriaCasa(selAtividade.value.slice(4), a.desc)) return false;
+    } else if(a.desc!==selAtividade.value){
+      return false;
+    }
+  }
   const start = inpStart.value, end = inpEnd.value;
   if(a.ini && end && a.ini>end) return false;
   if(a.fim && start && a.fim<start) return false;
@@ -864,8 +959,11 @@ function render(){
   document.getElementById('kpi-atrasadas').textContent = fmtInt(atrasadas);
   document.getElementById('kpi-concluidas').textContent = fmtInt(concluidas);
   document.getElementById('kpi-horas').textContent = fmtInt(horas);
+  document.getElementById('kpi-pct-concluido').textContent = (total>0 ? Math.round((concluidas/total)*100) : 0)+'%';
 
-  // chart 1: atividades por local
+  // chart 1: atividades por local — lista horizontal, centralizada como
+  // painel principal (a mais ativa primeiro), em vez do gráfico de barras
+  // verticais anterior.
   const counts = {};
   const localActsMap = {};
   filtered.forEach(a=>{
@@ -876,13 +974,26 @@ function render(){
   });
   const localItems = Object.entries(counts)
     .map(([label,value])=>({label,value,acts:localActsMap[label]}))
-    .sort((a,b)=> a.value-b.value || a.label.localeCompare(b.label));
+    .sort((a,b)=> b.value-a.value || a.label.localeCompare(b.label));
   document.getElementById('local-hint').textContent = localItems.length+' locais no filtro';
-  buildBarChart(document.getElementById('chart-local-wrap'), localItems, {
-    barW:26, gap:15, height:236,
-    colorOf: ()=> getComputedStyle(document.body).getPropertyValue('--series-1').trim(),
-    tooltipOf: (d)=> '<b>'+d.label+'</b><br>'+d.value+' atividade(s)',
+  buildHBarList(document.getElementById('chart-local-wrap'), localItems, {
     onClick: (d)=> openActsModal(d.label, d.value+' atividade(s) neste local (conforme filtros atuais)', d.acts)
+  });
+
+  // chart: atividades por responsável
+  const respCounts = {};
+  const respActsMap = {};
+  filtered.forEach(a=>{
+    const r = a.resp || 'Não atribuído';
+    respCounts[r]=(respCounts[r]||0)+1;
+    (respActsMap[r] = respActsMap[r]||[]).push(a);
+  });
+  const respItems = Object.entries(respCounts)
+    .map(([label,value])=>({label,value,acts:respActsMap[label]}))
+    .sort((a,b)=> b.value-a.value || a.label.localeCompare(b.label));
+  document.getElementById('resp-hint').textContent = respItems.length+' responsável(is) no filtro';
+  buildHBarList(document.getElementById('chart-resp-wrap'), respItems, {
+    onClick: (d)=> openActsModal(d.label, d.value+' atividade(s) deste responsável (conforme filtros atuais)', d.acts)
   });
 
   // --- painéis da "semana corrente": sempre fixos em seg–sex da semana atual,
@@ -921,6 +1032,7 @@ function render(){
     .sort((a,b)=> b.value-a.value);
   document.getElementById('tipo-semana-hint').textContent = tipoItems.length+' tipo(s) · '+actsThisWeek.length+' atividade(s) nesta semana';
   buildHBarList(document.getElementById('tipo-semana-wrap'), tipoItems, {
+    emptyText: 'Nenhuma atividade programada para esta semana.',
     onClick: (d)=> openActsModal(d.full, d.value+' atividade(s) desta semana', d.acts)
   });
 
@@ -970,7 +1082,201 @@ function render(){
       tbody.appendChild(tr);
     });
   }
+
+  // table: justificativas (por que uma atividade não foi concluída)
+  const justRows = filtered.filter(a=> a.justificativa);
+  justRows.sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''));
+  document.getElementById('just-hint').textContent = justRows.length+' registro(s)';
+  const tbodyJ = document.getElementById('just-tbody');
+  tbodyJ.innerHTML='';
+  if(justRows.length===0){
+    const tr=document.createElement('tr');
+    const td=document.createElement('td');
+    td.colSpan=5; td.className='empty-note'; td.textContent='Nenhuma justificativa registrada para os filtros selecionados.';
+    tr.appendChild(td); tbodyJ.appendChild(tr);
+  } else {
+    justRows.forEach(a=>{
+      const tr=document.createElement('tr');
+      const chipClass = a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning': a.situacao==='Concluído'?'chip-good':'chip-neutral';
+      tr.innerHTML = '<td class="local-cell">'+(a.local||'—')+'</td>'+
+        '<td>'+(a.desc||'—')+'</td>'+
+        '<td>'+(a.resp||'—')+'</td>'+
+        '<td>'+a.justificativa+'</td>'+
+        '<td><span class="chip '+chipClass+'">'+(a.situacao||'—')+'</span></td>';
+      tbodyJ.appendChild(tr);
+    });
+  }
 }
 
+// ---------- aba Colaborador ----------
+function colabNomeAtual(){
+  return (document.getElementById('colab-nome').value || '').trim();
+}
+
+function popularNomesColaborador(){
+  const nomes = [...new Set(DATA.acts.map(a=>a.resp).filter(Boolean))].sort();
+  document.getElementById('colab-nomes').innerHTML = nomes.map(n=>'<option value="'+n+'">').join('');
+}
+
+function renderColaboradorItem(a){
+  const div = document.createElement('div');
+  div.className = 'colab-item';
+  const head = document.createElement('div');
+  head.innerHTML =
+    '<div class="colab-item-desc">'+(a.desc||'—')+'</div>'+
+    '<div class="colab-item-meta">'+(a.local||'—')+' · prazo '+fmtDateBR(a.fim)+' · '+fmtH(a.horas)+'h'+
+    (a.situacao? ' · '+a.situacao : '')+'</div>';
+  div.appendChild(head);
+
+  const concluida = a.status==='concluído';
+  if(!concluida){
+    const actions = document.createElement('div');
+    actions.className = 'colab-item-actions';
+
+    const btnConcluir = document.createElement('button');
+    btnConcluir.className = 'colab-btn';
+    btnConcluir.textContent = 'Concluir';
+    btnConcluir.addEventListener('click', ()=> acaoConcluir(a.id, btnConcluir));
+    actions.appendChild(btnConcluir);
+
+    const justBox = document.createElement('div');
+    justBox.className = 'colab-just-box';
+    const ta = document.createElement('textarea');
+    ta.placeholder = 'Por que esta atividade não foi concluída no prazo?';
+    ta.value = a.justificativa || '';
+    const btnSalvarJust = document.createElement('button');
+    btnSalvarJust.className = 'colab-btn';
+    btnSalvarJust.textContent = 'Salvar';
+    btnSalvarJust.addEventListener('click', ()=> acaoJustificar(a.id, ta.value, btnSalvarJust));
+    justBox.appendChild(ta); justBox.appendChild(btnSalvarJust);
+
+    const btnJustificar = document.createElement('button');
+    btnJustificar.className = 'colab-btn secondary';
+    btnJustificar.textContent = a.justificativa ? 'Editar justificativa' : 'Justificar';
+    btnJustificar.addEventListener('click', ()=> justBox.classList.toggle('open'));
+    actions.appendChild(btnJustificar);
+
+    div.appendChild(actions);
+    div.appendChild(justBox);
+  } else if(a.justificativa){
+    const j = document.createElement('div');
+    j.className = 'colab-just-existing';
+    j.textContent = 'Justificativa: '+a.justificativa;
+    div.appendChild(j);
+  }
+  return div;
+}
+
+function preencherLista(elId, itens, msgVazia){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if(itens.length===0){
+    const p=document.createElement('div'); p.className='empty-note'; p.textContent=msgVazia;
+    el.appendChild(p);
+  } else {
+    itens.forEach(a=> el.appendChild(renderColaboradorItem(a)));
+  }
+}
+
+function renderColaborador(){
+  popularNomesColaborador();
+  const nome = colabNomeAtual();
+  const minhas = nome ? DATA.acts.filter(a=> (a.resp||'').toLowerCase()===nome.toLowerCase()) : [];
+  const pendentes = minhas.filter(a=> a.status!=='concluído');
+  const concluidas = minhas.filter(a=> a.status==='concluído');
+
+  document.getElementById('colab-pendentes-hint').textContent = nome ? pendentes.length+' pendente(s)' : 'informe seu nome acima';
+  preencherLista('colab-pendentes-list', pendentes,
+    nome ? 'Nenhuma atividade pendente para você — ótimo trabalho!' : 'Digite seu nome acima para ver suas atividades.');
+
+  document.getElementById('colab-concluidas-hint').textContent = concluidas.length+' registro(s)';
+  preencherLista('colab-concluidas-list', concluidas, 'Nenhuma atividade concluída ainda.');
+}
+
+async function chamarApi(caminho, payload){
+  const resp = await fetch(caminho, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  });
+  const data = await resp.json();
+  if(!resp.ok) throw new Error(data.erro || 'Falha ao salvar.');
+  return data;
+}
+
+function aplicarNovosDados(novosDados){
+  DATA = novosDados;
+  popularFiltros(true);
+  render();
+  renderColaborador();
+}
+
+async function acaoConcluir(numero, botao){
+  botao.disabled = true;
+  try{
+    aplicarNovosDados(await chamarApi('/api/concluir', {numero}));
+  } catch(e){
+    alert('Não consegui salvar: '+e.message);
+    botao.disabled = false;
+  }
+}
+
+async function acaoJustificar(numero, texto, botao){
+  botao.disabled = true;
+  try{
+    aplicarNovosDados(await chamarApi('/api/justificativa', {numero, texto}));
+  } catch(e){
+    alert('Não consegui salvar: '+e.message);
+    botao.disabled = false;
+  }
+}
+
+document.getElementById('colab-form-nova').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const nome = colabNomeAtual();
+  if(!nome){ alert('Informe seu nome antes de adicionar uma atividade.'); return; }
+  const desc = document.getElementById('colab-nova-desc').value.trim();
+  if(!desc){ alert('Descreva a atividade.'); return; }
+  const payload = {
+    desc,
+    local: document.getElementById('colab-nova-local').value.trim(),
+    fim: document.getElementById('colab-nova-fim').value || null,
+    horas: parseFloat(document.getElementById('colab-nova-horas').value) || 0,
+    resp: nome,
+  };
+  try{
+    aplicarNovosDados(await chamarApi('/api/nova-atividade', payload));
+    ev.target.reset();
+    document.getElementById('colab-nome').value = nome; // mantém o nome preenchido após o reset
+  } catch(e){
+    alert('Não consegui salvar: '+e.message);
+  }
+});
+
+document.getElementById('colab-nome').addEventListener('input', renderColaborador);
+
+// ---------- abas ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// A aba Colaborador só escreve de verdade quando o painel está sendo
+// servido por abrir_colaborador.bat (colaborador_server.py) — pelo link
+// público do GitHub Pages ela fica só de leitura, com um aviso.
+fetch('/api/dados').then(r=>{
+  if(!r.ok) throw new Error('offline');
+  document.getElementById('colab-offline-notice').style.display='none';
+  document.getElementById('colab-online-area').style.display='';
+  document.querySelectorAll('.colab-writable-panel').forEach(el=> el.style.display='');
+}).catch(()=>{
+  document.getElementById('colab-offline-notice').style.display='';
+  document.getElementById('colab-online-area').style.display='none';
+  document.querySelectorAll('.colab-writable-panel').forEach(el=> el.style.display='none');
+});
+
 render();
+renderColaborador();
 </script>
