@@ -16,10 +16,6 @@ O padrão é docs/index.html porque é o caminho que o GitHub Pages usa
 para publicar o painel automaticamente em um link público (veja o
 README) — mas também pode ser aberto direto no navegador, sem precisar
 de internet.
-
-As funções carregar_dados()/montar_html() também são reaproveitadas por
-colaborador_server.py (aba "Colaborador" do painel, ver README) para
-gerar a mesma página ao vivo, sem passar por um arquivo intermediário.
 """
 import argparse
 import base64
