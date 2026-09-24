@@ -16,10 +16,6 @@ O padrão é docs/index.html porque é o caminho que o GitHub Pages usa
 para publicar o painel automaticamente em um link público (veja o
 README) — mas também pode ser aberto direto no navegador, sem precisar
 de internet.
-
-As funções carregar_dados()/montar_html() também são reaproveitadas por
-colaborador_server.py (aba "Colaborador" do painel, ver README) para
-gerar a mesma página ao vivo, sem passar por um arquivo intermediário.
 """
 import argparse
 import base64
@@ -60,10 +56,9 @@ def achar_coluna(headers, candidatos):
 
 def extrair_atividades(ws):
     headers = [c.value for c in ws[1]]
-    # RESPONSÁVEL e JUSTIFICATIVA são campos novos (aba Colaborador, ver
-    # README) — usam busca por nome aproximado porque a planilha pode não
-    # ter essas colunas ainda (nesse caso ficam em branco) ou ter o
-    # cabeçalho escrito de um jeito ligeiramente diferente.
+    # RESPONSÁVEL e JUSTIFICATIVA usam busca por nome aproximado porque a
+    # planilha pode não ter essas colunas ainda (nesse caso ficam em
+    # branco) ou ter o cabeçalho escrito de um jeito ligeiramente diferente.
     idx_resp = achar_coluna(headers, ["RESPONSÁVEL", "RESPONSAVEL", "COLABORADOR"])
     idx_just = achar_coluna(headers, ["JUSTIFICATIVA", "MOTIVO", "MOTIVO DO ATRASO"])
 
