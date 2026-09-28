@@ -18,7 +18,7 @@ import os
 import subprocess
 import sys
 
-from local_config import XLSX_PATH
+from local_config import resolver_xlsx_path
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,6 +30,7 @@ def run(cmd):
 
 
 def main():
+    XLSX_PATH = resolver_xlsx_path()
     if not os.path.exists(XLSX_PATH):
         print("ERRO: não encontrei a planilha em:")
         print("  " + XLSX_PATH)

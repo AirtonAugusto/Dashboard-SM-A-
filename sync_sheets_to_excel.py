@@ -28,7 +28,7 @@ from pathlib import Path
 
 import openpyxl
 
-from local_config import XLSX_PATH
+from local_config import resolver_xlsx_path
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(REPO_DIR, "sheets_config.json")
@@ -99,6 +99,7 @@ def garantir_colunas(ws, headers):
 
 def main():
     api_url = carregar_api_url()
+    XLSX_PATH = resolver_xlsx_path()
     verificar_planilha_fechada(XLSX_PATH)
 
     print("Buscando atualizações no Google Sheets...")
