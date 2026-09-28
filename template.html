@@ -711,6 +711,16 @@ function addDaysIso(iso, days){
   dt.setUTCDate(dt.getUTCDate()+days);
   return dateToIso(dt);
 }
+// Uma atividade "ocorre" num dia se esse dia cai dentro do intervalo
+// [ini, fim] dela -- nao so no dia de inicio. Isso e o que faz uma
+// atividade de varios dias (ex: 02/10 a 09/10) aparecer em todos os dias
+// do calendario e do grafico da semana em que ela esta em andamento,
+// igual a planilha real mostra na aba "Proximas 3 Semanas".
+function ocorreNoDia(a, iso){
+  if(!a.ini) return false;
+  const fim = a.fim || a.ini;
+  return a.ini<=iso && fim>=iso;
+}
 // Semana corrente calculada a partir da data real do dispositivo a cada carregamento —
 // por isso o painel "vira a página" sozinho quando uma nova semana começa, sem precisar editar nada aqui.
 function getCurrentWeekRange(){
@@ -1179,12 +1189,12 @@ function render(){
   const wk = getCurrentWeekRange();
   const weekdayIsos = [0,1,2,3,4].map(n=> addDaysIso(wk.start, n));
   const weekdayNames = ['Seg','Ter','Qua','Qui','Sex'];
-  const actsThisWeek = DATA.acts.filter(a=> a.ini && a.ini>=weekdayIsos[0] && a.ini<=weekdayIsos[4]);
+  const actsThisWeek = DATA.acts.filter(a=> weekdayIsos.some(iso=> ocorreNoDia(a, iso)));
 
   // chart 2: atividades por dia da semana corrente (5 colunas, seg a sex),
   // empilhado em concluída x pendente — clicar num dia abre a lista de atividades
   const weekDays = weekdayIsos.map((iso,i)=>{
-    const acts = actsThisWeek.filter(a=> a.ini===iso);
+    const acts = actsThisWeek.filter(a=> ocorreNoDia(a, iso));
     const concluida = acts.filter(a=> a.status==='concluído').length;
     return {
       iso,
@@ -1328,7 +1338,7 @@ function renderCalendario(){
     const daysWrap = document.createElement('div');
     daysWrap.className = 'cal-days';
     weekDays.forEach((iso,i)=>{
-      const actsDoDia = DATA.acts.filter(a=> a.ini===iso);
+      const actsDoDia = DATA.acts.filter(a=> ocorreNoDia(a, iso));
       const cell = document.createElement('div');
       cell.className = 'cal-day'+(iso===todayIso ? ' is-today' : '');
       const head = document.createElement('div');
