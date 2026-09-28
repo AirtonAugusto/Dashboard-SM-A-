@@ -302,18 +302,19 @@
   .cal-week{margin-bottom:16px;}
   .cal-week:last-child{margin-bottom:0;}
   .cal-week-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
-  .cal-days{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .cal-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;min-width:0;}
   .cal-day{
     border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-height:96px;
     cursor:pointer;background:var(--surface-2);display:flex;flex-direction:column;gap:6px;
+    min-width:0;overflow:hidden;
   }
   .cal-day:hover{border-color:var(--accent);}
   .cal-day.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
-  .cal-day-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+  .cal-day-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0;}
   .cal-day-name{font-size:11.5px;font-weight:700;color:var(--text-primary);}
-  .cal-day-date{font-size:10.5px;color:var(--text-muted);}
+  .cal-day-date{font-size:10.5px;color:var(--text-muted);white-space:nowrap;}
   .cal-day-count{font-size:11px;font-weight:700;color:var(--accent-ink);}
-  .cal-day-chip{font-size:10.8px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cal-day-chip{font-size:10.8px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
   .cal-day-empty{font-size:11px;color:var(--text-muted);}
   @media (max-width: 760px){
     .cal-days{grid-template-columns:repeat(2,1fr);}
