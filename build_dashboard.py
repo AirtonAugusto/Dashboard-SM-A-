@@ -56,10 +56,9 @@ def achar_coluna(headers, candidatos):
 
 def extrair_atividades(ws):
     headers = [c.value for c in ws[1]]
-    # RESPONSÁVEL e JUSTIFICATIVA são campos novos (aba Colaborador, ver
-    # README) — usam busca por nome aproximado porque a planilha pode não
-    # ter essas colunas ainda (nesse caso ficam em branco) ou ter o
-    # cabeçalho escrito de um jeito ligeiramente diferente.
+    # RESPONSÁVEL e JUSTIFICATIVA usam busca por nome aproximado porque a
+    # planilha pode não ter essas colunas ainda (nesse caso ficam em
+    # branco) ou ter o cabeçalho escrito de um jeito ligeiramente diferente.
     idx_resp = achar_coluna(headers, ["RESPONSÁVEL", "RESPONSAVEL", "COLABORADOR"])
     idx_just = achar_coluna(headers, ["JUSTIFICATIVA", "MOTIVO", "MOTIVO DO ATRASO"])
     # Campos novos do fluxo colaborador/Google Sheets — se a planilha Excel
