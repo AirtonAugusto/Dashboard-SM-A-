@@ -299,6 +299,26 @@
   .colab-just-box textarea{flex:1;min-height:56px;resize:vertical;}
   .colab-just-existing{font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-radius:8px;padding:8px 10px;margin-top:10px;}
 
+  .cal-week{margin-bottom:16px;}
+  .cal-week:last-child{margin-bottom:0;}
+  .cal-week-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+  .cal-days{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .cal-day{
+    border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-height:96px;
+    cursor:pointer;background:var(--surface-2);display:flex;flex-direction:column;gap:6px;
+  }
+  .cal-day:hover{border-color:var(--accent);}
+  .cal-day.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .cal-day-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+  .cal-day-name{font-size:11.5px;font-weight:700;color:var(--text-primary);}
+  .cal-day-date{font-size:10.5px;color:var(--text-muted);}
+  .cal-day-count{font-size:11px;font-weight:700;color:var(--accent-ink);}
+  .cal-day-chip{font-size:10.8px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cal-day-empty{font-size:11px;color:var(--text-muted);}
+  @media (max-width: 760px){
+    .cal-days{grid-template-columns:repeat(2,1fr);}
+  }
+
   @media (max-width: 980px){
     .app{flex-direction:column;}
     .sidebar{position:relative;flex:0 0 auto;width:100%;min-height:0;}
@@ -356,6 +376,12 @@
     <div class="topbar">
       <h1>Programação de Atividades SM&amp;A</h1>
       <div class="meta">Período filtrado: <b id="meta-period">—</b><span id="meta-week-badge"></span> · <b id="meta-count">0</b> atividades exibidas</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="painel" type="button">Painel</button>
+      <button class="tab-btn" data-tab="calendario" type="button">Calendário (3 semanas)</button>
+      <button class="tab-btn" data-tab="colaborador" type="button">Ações do Colaborador</button>
     </div>
 
     <div id="view-painel" class="view active">
@@ -497,7 +523,112 @@
     </section>
     </div>
 
+    <div id="view-calendario" class="view">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Calendário — próximas 3 semanas</h2>
+          <span class="hint" id="cal-hint"></span>
+        </div>
+        <div id="cal-offline-note" class="chart-caption" style="display:none;">
+          Mostrando o último retrato salvo da planilha — as ações do colaborador ainda não estão conectadas
+          (defina a URL do Google Sheets para habilitar a leitura ao vivo).
+        </div>
+        <div id="cal-grid"></div>
+        <div class="chart-caption">Clique em um dia para ver a descrição, as horas e a subestação de cada atividade programada nele.</div>
+      </section>
     </div>
+
+    <div id="view-colaborador" class="view">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Quem está acessando?</h2>
+        </div>
+        <div class="colab-form">
+          <div class="colab-field">
+            <label>Seu nome</label>
+            <input type="text" id="colab-nome" list="colab-nomes-list" placeholder="Digite seu nome">
+            <datalist id="colab-nomes-list"></datalist>
+          </div>
+        </div>
+        <div id="colab-api-note" class="chart-caption" style="display:none;">
+          As ações do colaborador ainda não estão conectadas a um banco de dados — as planilhas continuam sendo
+          atualizadas do jeito de sempre até essa etapa ser concluída.
+        </div>
+      </section>
+
+      <section class="charts">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>+ Nova atividade</h2>
+            <span class="hint">Oportunidade identificada — entra no backlog, sem data.</span>
+          </div>
+          <div class="colab-form">
+            <div class="colab-field" style="grid-column:1/-1;">
+              <label>Descrição</label>
+              <input type="text" id="nova-desc">
+            </div>
+            <div class="colab-field">
+              <label>Subestação / Local</label>
+              <input type="text" id="nova-local">
+            </div>
+            <div class="colab-field">
+              <label>Horas previstas</label>
+              <input type="number" id="nova-horas" min="0" step="0.25">
+            </div>
+            <div class="colab-field" style="grid-column:1/-1;">
+              <label>Observação (opcional)</label>
+              <input type="text" id="nova-obs">
+            </div>
+            <button class="colab-btn" id="btn-nova-atividade" type="button">Adicionar ao backlog</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>+ Atividade extra (proatividade)</h2>
+            <span class="hint">Algo que você já executou, fora do planejado.</span>
+          </div>
+          <div class="colab-form">
+            <div class="colab-field" style="grid-column:1/-1;">
+              <label>Descrição</label>
+              <input type="text" id="extra-desc">
+            </div>
+            <div class="colab-field">
+              <label>Subestação / Local</label>
+              <input type="text" id="extra-local">
+            </div>
+            <div class="colab-field">
+              <label>Horas gastas</label>
+              <input type="number" id="extra-horas" min="0" step="0.25">
+            </div>
+            <div class="colab-field">
+              <label>Dia da execução</label>
+              <input type="date" id="extra-data">
+            </div>
+            <div class="colab-field" style="grid-column:1/-1;">
+              <label>Observação (opcional)</label>
+              <input type="text" id="extra-obs">
+            </div>
+            <button class="colab-btn" id="btn-extra-atividade" type="button">Registrar atividade extra</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Atividades pendentes</h2>
+          <span class="hint" id="colab-pend-hint"></span>
+        </div>
+        <div class="colab-form" style="margin-bottom:10px;">
+          <div class="colab-field">
+            <label>Buscar (local ou descrição)</label>
+            <input type="text" id="colab-busca" placeholder="Ex.: SU-080, comissionamento...">
+          </div>
+        </div>
+        <div id="colab-pend-list" style="max-height:520px;overflow-y:auto;padding-right:6px;"></div>
+      </section>
+    </div>
+
   </main>
 </div>
 
@@ -518,6 +649,13 @@
 
 <script>
 let DATA = __DATA_JSON__;
+
+// URL do Web App do Google Apps Script (Google Sheets). Fica vazia enquanto
+// o banco de dados na nuvem nao for configurado -- nesse caso o painel
+// funciona normalmente, só de leitura, com o retrato salvo no último
+// "Atualizar painel". Ver README / apps-script/Code.gs.
+const CONFIG = { API_URL: "__SHEETS_API_URL__" };
+const API_ATIVA = !!CONFIG.API_URL;
 
 // Categorias gerais reconhecidas na descrição da atividade (substring,
 // sem diferenciar maiúscula/minúscula) — usadas para o filtro "Atividade"
@@ -788,12 +926,15 @@ function openActsModal(title, subtitle, acts){
         const concluida = a.status==='concluído';
         const chipClass = concluida ? 'chip-good' : (a.situacao==='Atrasado'?'chip-critical': a.situacao==='A Programar'?'chip-warning':'chip-neutral');
         const chipText = concluida ? 'Concluída' : (a.situacao || '—');
+        const metaParts = [(a.local||'—')+' · '+fmtH(a.horas)+'h'];
+        if(a.resp) metaParts.push('Responsável: '+a.resp);
+        if(a.dataExecucao) metaParts.push('Execução: '+fmtDateBR(a.dataExecucao));
         const row = document.createElement('div');
         row.className = 'modal-row';
         row.innerHTML =
           '<div class="modal-row-main">'+
             '<div class="modal-row-desc">'+(a.desc||'—')+'</div>'+
-            '<div class="modal-row-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h</div>'+
+            '<div class="modal-row-meta">'+metaParts.join(' · ')+'</div>'+
           '</div>'+
           '<span class="chip '+chipClass+'">'+chipText+'</span>';
         body.appendChild(row);
@@ -1145,5 +1286,282 @@ function render(){
   }
 }
 
+// ---------- abas (Painel / Calendário / Colaborador) ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- calendário: próximas 3 semanas (sempre a partir de hoje) ----------
+function getThreeWeekWindow(){
+  const wk = getCurrentWeekRange();
+  const days = [];
+  for(let w=0; w<3; w++){
+    for(let d=0; d<5; d++){ days.push(addDaysIso(wk.start, w*7+d)); }
+  }
+  return { start: wk.start, end: days[days.length-1], days };
+}
+
+function renderCalendario(){
+  const janela = getThreeWeekWindow();
+  const todayIso = dateToIso(new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())));
+  const weekdayNames = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+  document.getElementById('cal-hint').textContent =
+    fmtDateBR(janela.start)+' a '+fmtDateBR(janela.end)+' · calculado automaticamente a partir de hoje';
+  document.getElementById('cal-offline-note').style.display = API_ATIVA ? 'none' : '';
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  for(let w=0; w<3; w++){
+    const weekWrap = document.createElement('div');
+    weekWrap.className = 'cal-week';
+    const weekDays = janela.days.slice(w*5, w*5+5);
+    const label = document.createElement('div');
+    label.className = 'cal-week-label';
+    label.textContent = 'Semana '+(w+1)+' · '+fmtDateBR(weekDays[0])+' a '+fmtDateBR(weekDays[4]);
+    weekWrap.appendChild(label);
+
+    const daysWrap = document.createElement('div');
+    daysWrap.className = 'cal-days';
+    weekDays.forEach((iso,i)=>{
+      const actsDoDia = DATA.acts.filter(a=> a.ini===iso);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day'+(iso===todayIso ? ' is-today' : '');
+      const head = document.createElement('div');
+      head.className = 'cal-day-head';
+      head.innerHTML = '<span class="cal-day-name">'+weekdayNames[i]+'</span><span class="cal-day-date">'+fmtDateBR(iso).slice(0,5)+'</span>';
+      cell.appendChild(head);
+
+      if(actsDoDia.length===0){
+        const empty = document.createElement('div');
+        empty.className = 'cal-day-empty';
+        empty.textContent = 'Sem atividade';
+        cell.appendChild(empty);
+      } else {
+        const count = document.createElement('div');
+        count.className = 'cal-day-count';
+        count.textContent = actsDoDia.length+' atividade(s)';
+        cell.appendChild(count);
+        actsDoDia.slice(0,3).forEach(a=>{
+          const chip = document.createElement('div');
+          chip.className = 'cal-day-chip';
+          chip.textContent = (a.local? a.local+' · ':'')+(a.desc||'');
+          chip.title = a.desc||'';
+          cell.appendChild(chip);
+        });
+        if(actsDoDia.length>3){
+          const more = document.createElement('div');
+          more.className = 'cal-day-chip';
+          more.textContent = '+ '+(actsDoDia.length-3)+' outra(s)...';
+          cell.appendChild(more);
+        }
+      }
+      cell.addEventListener('click', ()=> openActsModal(
+        weekdayNames[i]+' '+fmtDateBR(iso),
+        actsDoDia.length+' atividade(s) programada(s) neste dia',
+        actsDoDia
+      ));
+      daysWrap.appendChild(cell);
+    });
+    weekWrap.appendChild(daysWrap);
+    grid.appendChild(weekWrap);
+  }
+}
+
+// ---------- ações do colaborador ----------
+const inpColabNome = document.getElementById('colab-nome');
+const inpColabBusca = document.getElementById('colab-busca');
+
+function nomeColaboradorAtual(){
+  return (inpColabNome.value||'').trim();
+}
+function exigirNome(){
+  const nome = nomeColaboradorAtual();
+  if(!nome){
+    alert('Digite seu nome antes de continuar.');
+    inpColabNome.focus();
+    return null;
+  }
+  return nome;
+}
+
+// Envia em text/plain de propósito (ver Code.gs) para não disparar um
+// preflight CORS que o Apps Script Web App não sabe responder.
+async function postAction(payload){
+  if(!API_ATIVA){
+    alert('As ações do colaborador ainda não estão conectadas a um banco de dados (Google Sheets). Assim que a AngloGold/Cardozo configurar isso, essa ação passa a funcionar direto por aqui.');
+    return { ok:false };
+  }
+  try{
+    const resp = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers: { 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const json = await resp.json();
+    if(!json.ok){ alert('Não foi possível concluir: '+(json.erro||'erro desconhecido')); }
+    return json;
+  }catch(err){
+    alert('Falha de conexão ao tentar salvar. Verifique sua internet e tente de novo.');
+    return { ok:false, erro:String(err) };
+  }
+}
+
+async function fetchLiveData(){
+  if(!API_ATIVA) return;
+  try{
+    const resp = await fetch(CONFIG.API_URL+'?action=listar', { method:'GET' });
+    const json = await resp.json();
+    if(json.ok && Array.isArray(json.acts) && json.acts.length){
+      DATA.acts = json.acts.map(a=> Object.assign({}, a, { horas: Number(a.horas)||0 }));
+      popularFiltros(true);
+      render();
+      renderCalendario();
+      renderColaborador();
+    }
+  }catch(err){
+    // offline ou URL ainda não configurada: mantém o retrato embutido, sem quebrar o painel.
+  }
+}
+
+function renderColaborador(){
+  document.getElementById('colab-api-note').style.display = API_ATIVA ? 'none' : '';
+
+  const nomes = [...new Set(DATA.acts.map(a=>a.resp).filter(Boolean))].sort();
+  const dl = document.getElementById('colab-nomes-list');
+  dl.innerHTML = '';
+  nomes.forEach(n=>{ const o=document.createElement('option'); o.value=n; dl.appendChild(o); });
+
+  const busca = (inpColabBusca.value||'').toLowerCase();
+  const pendentes = DATA.acts.filter(a=>{
+    if(a.status==='concluído') return false;
+    if(!busca) return true;
+    return (a.local||'').toLowerCase().includes(busca) || (a.desc||'').toLowerCase().includes(busca);
+  }).sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''));
+
+  document.getElementById('colab-pend-hint').textContent = pendentes.length+' atividade(s) pendente(s)';
+  const list = document.getElementById('colab-pend-list');
+  list.innerHTML = '';
+  if(pendentes.length===0){
+    const p = document.createElement('div');
+    p.className = 'empty-note';
+    p.textContent = 'Nenhuma atividade pendente para essa busca.';
+    list.appendChild(p);
+    return;
+  }
+  pendentes.slice(0,150).forEach(a=>{
+    const item = document.createElement('div');
+    item.className = 'colab-item';
+    item.innerHTML =
+      '<div class="colab-item-desc">'+(a.desc||'—')+'</div>'+
+      '<div class="colab-item-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h'+
+        (a.resp? ' · Responsável atual: '+a.resp : ' · sem responsável definido')+
+        (a.situacao? ' · '+a.situacao : '')+
+      '</div>';
+    const actions = document.createElement('div');
+    actions.className = 'colab-item-actions';
+
+    const btnConcluir = document.createElement('button');
+    btnConcluir.className = 'colab-btn';
+    btnConcluir.type = 'button';
+    btnConcluir.textContent = 'Concluir';
+    btnConcluir.addEventListener('click', async ()=>{
+      const nome = exigirNome(); if(!nome) return;
+      btnConcluir.disabled = true;
+      const r = await postAction({ acao:'concluir', id:a.id, responsavel:nome });
+      btnConcluir.disabled = false;
+      if(r.ok){ await fetchLiveData(); }
+    });
+    actions.appendChild(btnConcluir);
+
+    const btnJust = document.createElement('button');
+    btnJust.className = 'colab-btn secondary';
+    btnJust.type = 'button';
+    btnJust.textContent = 'Justificar';
+    actions.appendChild(btnJust);
+
+    item.appendChild(actions);
+
+    const justBox = document.createElement('div');
+    justBox.className = 'colab-just-box';
+    const ta = document.createElement('textarea');
+    ta.placeholder = 'Por que essa atividade não foi realizada?';
+    const btnEnviarJust = document.createElement('button');
+    btnEnviarJust.className = 'colab-btn';
+    btnEnviarJust.type = 'button';
+    btnEnviarJust.textContent = 'Enviar justificativa';
+    btnEnviarJust.addEventListener('click', async ()=>{
+      const nome = exigirNome(); if(!nome) return;
+      const texto = (ta.value||'').trim();
+      if(!texto){ alert('Escreva a justificativa antes de enviar.'); return; }
+      btnEnviarJust.disabled = true;
+      const r = await postAction({ acao:'justificar', id:a.id, responsavel:nome, justificativa:texto });
+      btnEnviarJust.disabled = false;
+      if(r.ok){ await fetchLiveData(); }
+    });
+    justBox.appendChild(ta);
+    justBox.appendChild(btnEnviarJust);
+    item.appendChild(justBox);
+
+    btnJust.addEventListener('click', ()=> justBox.classList.toggle('open'));
+
+    list.appendChild(item);
+  });
+}
+
+inpColabBusca.addEventListener('input', renderColaborador);
+
+document.getElementById('btn-nova-atividade').addEventListener('click', async ()=>{
+  const nome = exigirNome(); if(!nome) return;
+  const desc = document.getElementById('nova-desc').value.trim();
+  if(!desc){ alert('Descreva a atividade.'); return; }
+  const payload = {
+    acao:'nova_atividade',
+    responsavel: nome,
+    desc,
+    local: document.getElementById('nova-local').value.trim(),
+    horas: document.getElementById('nova-horas').value || 0,
+    obs: document.getElementById('nova-obs').value.trim()
+  };
+  const r = await postAction(payload);
+  if(r.ok){
+    ['nova-desc','nova-local','nova-horas','nova-obs'].forEach(id=> document.getElementById(id).value='');
+    await fetchLiveData();
+  }
+});
+
+document.getElementById('btn-extra-atividade').addEventListener('click', async ()=>{
+  const nome = exigirNome(); if(!nome) return;
+  const desc = document.getElementById('extra-desc').value.trim();
+  if(!desc){ alert('Descreva a atividade.'); return; }
+  const payload = {
+    acao:'atividade_adicional',
+    responsavel: nome,
+    desc,
+    local: document.getElementById('extra-local').value.trim(),
+    horas: document.getElementById('extra-horas').value || 0,
+    dataExecucao: document.getElementById('extra-data').value || null,
+    obs: document.getElementById('extra-obs').value.trim()
+  };
+  const r = await postAction(payload);
+  if(r.ok){
+    ['extra-desc','extra-local','extra-horas','extra-obs','extra-data'].forEach(id=> document.getElementById(id).value='');
+    await fetchLiveData();
+  }
+});
+
+(function initExtraDataDefault(){
+  const el = document.getElementById('extra-data');
+  const now = new Date();
+  el.value = dateToIso(new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())));
+})();
+
 render();
+renderCalendario();
+renderColaborador();
+fetchLiveData();
 </script>

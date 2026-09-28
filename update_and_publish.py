@@ -8,16 +8,17 @@ Chamado pelo atualizar_painel.bat -- normalmente voce nao precisa rodar este
 arquivo diretamente, so clicar duas vezes no .bat depois de salvar a planilha
 atualizada.
 
-Se a planilha mudar de nome ou de pasta, so editar o caminho em XLSX_PATH
-abaixo.
+Se a planilha mudar de nome ou de pasta, so editar o caminho em
+local_config.py (XLSX_PATH) -- esse mesmo arquivo tambem e usado pelo
+sync_sheets_to_excel.py, entao corrigir la corrige os dois scripts de uma
+vez.
 """
 import datetime
 import os
 import subprocess
 import sys
 
-# Caminho completo da planilha no seu computador.
-XLSX_PATH = r"C:\Users\CARDOZO\Documents\Airton Augusto\Programação(SM&A).xlsx"
+from local_config import XLSX_PATH
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,8 +42,8 @@ def main():
         print("     diferente do que está gravado aqui.")
         print()
         print("Como corrigir: no Explorador de Arquivos, clique com o botão direito na")
-        print('planilha e escolha "Copiar como caminho"; depois abra update_and_publish.py')
-        print("num editor de texto e cole esse caminho na linha XLSX_PATH (perto do topo).")
+        print('planilha e escolha "Copiar como caminho"; depois abra local_config.py')
+        print("num editor de texto e cole esse caminho na linha XLSX_PATH.")
         sys.exit(1)
 
     print("=" * 60)
