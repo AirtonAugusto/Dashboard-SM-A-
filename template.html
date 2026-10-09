@@ -273,32 +273,6 @@
   .view{display:none;flex-direction:column;gap:20px;}
   .view.active{display:flex;}
 
-  .colab-field{display:flex;flex-direction:column;gap:4px;}
-  .colab-field label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);}
-  .colab-field input, .colab-field textarea{
-    background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
-    padding:8px 10px;font-size:13px;font-family:inherit;color:var(--text-primary);outline:none;
-  }
-  .colab-field input:focus, .colab-field textarea:focus{border-color:var(--accent);}
-  .colab-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end;}
-  .colab-btn{
-    background:var(--accent);border:none;color:#1a1a1a;font-weight:700;
-    padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;
-  }
-  .colab-btn:hover{filter:brightness(1.05);}
-  .colab-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-weight:600;}
-  .colab-btn:disabled{opacity:.5;cursor:not-allowed;}
-
-  .colab-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
-  .colab-item:last-child{margin-bottom:0;}
-  .colab-item-desc{font-weight:700;font-size:13.5px;}
-  .colab-item-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
-  .colab-item-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;}
-  .colab-just-box{display:none;gap:8px;margin-top:10px;}
-  .colab-just-box.open{display:flex;}
-  .colab-just-box textarea{flex:1;min-height:56px;resize:vertical;}
-  .colab-just-existing{font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-radius:8px;padding:8px 10px;margin-top:10px;}
-
   .cal-week{margin-bottom:16px;}
   .cal-week:last-child{margin-bottom:0;}
   .cal-week-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
@@ -382,7 +356,6 @@
     <div class="tabs">
       <button class="tab-btn active" data-tab="painel" type="button">Painel</button>
       <button class="tab-btn" data-tab="calendario" type="button">Calendário (3 semanas)</button>
-      <button class="tab-btn" data-tab="colaborador" type="button">Ações do Colaborador</button>
     </div>
 
     <div id="view-painel" class="view active">
@@ -530,103 +503,8 @@
           <h2>Calendário — próximas 3 semanas</h2>
           <span class="hint" id="cal-hint"></span>
         </div>
-        <div id="cal-offline-note" class="chart-caption" style="display:none;">
-          Mostrando o último retrato salvo da planilha — as ações do colaborador ainda não estão conectadas
-          (defina a URL do Google Sheets para habilitar a leitura ao vivo).
-        </div>
         <div id="cal-grid"></div>
         <div class="chart-caption">Clique em um dia para ver a descrição, as horas e a subestação de cada atividade programada nele.</div>
-      </section>
-    </div>
-
-    <div id="view-colaborador" class="view">
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Quem está acessando?</h2>
-        </div>
-        <div class="colab-form">
-          <div class="colab-field">
-            <label>Seu nome</label>
-            <input type="text" id="colab-nome" list="colab-nomes-list" placeholder="Digite seu nome">
-            <datalist id="colab-nomes-list"></datalist>
-          </div>
-        </div>
-        <div id="colab-api-note" class="chart-caption" style="display:none;">
-          As ações do colaborador ainda não estão conectadas a um banco de dados — as planilhas continuam sendo
-          atualizadas do jeito de sempre até essa etapa ser concluída.
-        </div>
-      </section>
-
-      <section class="charts">
-        <div class="panel">
-          <div class="panel-head">
-            <h2>+ Nova atividade</h2>
-            <span class="hint">Oportunidade identificada — entra no backlog, sem data.</span>
-          </div>
-          <div class="colab-form">
-            <div class="colab-field" style="grid-column:1/-1;">
-              <label>Descrição</label>
-              <input type="text" id="nova-desc">
-            </div>
-            <div class="colab-field">
-              <label>Subestação / Local</label>
-              <input type="text" id="nova-local">
-            </div>
-            <div class="colab-field">
-              <label>Horas previstas</label>
-              <input type="number" id="nova-horas" min="0" step="0.25">
-            </div>
-            <div class="colab-field" style="grid-column:1/-1;">
-              <label>Observação (opcional)</label>
-              <input type="text" id="nova-obs">
-            </div>
-            <button class="colab-btn" id="btn-nova-atividade" type="button">Adicionar ao backlog</button>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <h2>+ Atividade extra (proatividade)</h2>
-            <span class="hint">Algo que você já executou, fora do planejado.</span>
-          </div>
-          <div class="colab-form">
-            <div class="colab-field" style="grid-column:1/-1;">
-              <label>Descrição</label>
-              <input type="text" id="extra-desc">
-            </div>
-            <div class="colab-field">
-              <label>Subestação / Local</label>
-              <input type="text" id="extra-local">
-            </div>
-            <div class="colab-field">
-              <label>Horas gastas</label>
-              <input type="number" id="extra-horas" min="0" step="0.25">
-            </div>
-            <div class="colab-field">
-              <label>Dia da execução</label>
-              <input type="date" id="extra-data">
-            </div>
-            <div class="colab-field" style="grid-column:1/-1;">
-              <label>Observação (opcional)</label>
-              <input type="text" id="extra-obs">
-            </div>
-            <button class="colab-btn" id="btn-extra-atividade" type="button">Registrar atividade extra</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Atividades pendentes</h2>
-          <span class="hint" id="colab-pend-hint"></span>
-        </div>
-        <div class="colab-form" style="margin-bottom:10px;">
-          <div class="colab-field">
-            <label>Buscar (local ou descrição)</label>
-            <input type="text" id="colab-busca" placeholder="Ex.: SU-080, comissionamento...">
-          </div>
-        </div>
-        <div id="colab-pend-list" style="max-height:520px;overflow-y:auto;padding-right:6px;"></div>
       </section>
     </div>
 
@@ -650,13 +528,6 @@
 
 <script>
 let DATA = __DATA_JSON__;
-
-// URL do Web App do Google Apps Script (Google Sheets). Fica vazia enquanto
-// o banco de dados na nuvem nao for configurado -- nesse caso o painel
-// funciona normalmente, só de leitura, com o retrato salvo no último
-// "Atualizar painel". Ver README / apps-script/Code.gs.
-const CONFIG = { API_URL: "__SHEETS_API_URL__" };
-const API_ATIVA = !!CONFIG.API_URL;
 
 // Categorias gerais reconhecidas na descrição da atividade (substring,
 // sem diferenciar maiúscula/minúscula) — usadas para o filtro "Atividade"
@@ -1297,7 +1168,7 @@ function render(){
   }
 }
 
-// ---------- abas (Painel / Calendário / Colaborador) ----------
+// ---------- abas (Painel / Calendário) ----------
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.tab-btn').forEach(b=> b.classList.remove('active'));
@@ -1323,7 +1194,6 @@ function renderCalendario(){
   const weekdayNames = ['Segunda','Terça','Quarta','Quinta','Sexta'];
   document.getElementById('cal-hint').textContent =
     fmtDateBR(janela.start)+' a '+fmtDateBR(janela.end)+' · calculado automaticamente a partir de hoje';
-  document.getElementById('cal-offline-note').style.display = API_ATIVA ? 'none' : '';
 
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
@@ -1383,196 +1253,6 @@ function renderCalendario(){
   }
 }
 
-// ---------- ações do colaborador ----------
-const inpColabNome = document.getElementById('colab-nome');
-const inpColabBusca = document.getElementById('colab-busca');
-
-function nomeColaboradorAtual(){
-  return (inpColabNome.value||'').trim();
-}
-function exigirNome(){
-  const nome = nomeColaboradorAtual();
-  if(!nome){
-    alert('Digite seu nome antes de continuar.');
-    inpColabNome.focus();
-    return null;
-  }
-  return nome;
-}
-
-// Envia em text/plain de propósito (ver Code.gs) para não disparar um
-// preflight CORS que o Apps Script Web App não sabe responder.
-async function postAction(payload){
-  if(!API_ATIVA){
-    alert('As ações do colaborador ainda não estão conectadas a um banco de dados (Google Sheets). Assim que a AngloGold/Cardozo configurar isso, essa ação passa a funcionar direto por aqui.');
-    return { ok:false };
-  }
-  try{
-    const resp = await fetch(CONFIG.API_URL, {
-      method:'POST',
-      headers: { 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-    const json = await resp.json();
-    if(!json.ok){ alert('Não foi possível concluir: '+(json.erro||'erro desconhecido')); }
-    return json;
-  }catch(err){
-    alert('Falha de conexão ao tentar salvar. Verifique sua internet e tente de novo.');
-    return { ok:false, erro:String(err) };
-  }
-}
-
-async function fetchLiveData(){
-  if(!API_ATIVA) return;
-  try{
-    const resp = await fetch(CONFIG.API_URL+'?action=listar', { method:'GET' });
-    const json = await resp.json();
-    if(json.ok && Array.isArray(json.acts) && json.acts.length){
-      DATA.acts = json.acts.map(a=> Object.assign({}, a, { horas: Number(a.horas)||0 }));
-      popularFiltros(true);
-      render();
-      renderCalendario();
-      renderColaborador();
-    }
-  }catch(err){
-    // offline ou URL ainda não configurada: mantém o retrato embutido, sem quebrar o painel.
-  }
-}
-
-function renderColaborador(){
-  document.getElementById('colab-api-note').style.display = API_ATIVA ? 'none' : '';
-
-  const nomes = [...new Set(DATA.acts.map(a=>a.resp).filter(Boolean))].sort();
-  const dl = document.getElementById('colab-nomes-list');
-  dl.innerHTML = '';
-  nomes.forEach(n=>{ const o=document.createElement('option'); o.value=n; dl.appendChild(o); });
-
-  const busca = (inpColabBusca.value||'').toLowerCase();
-  const pendentes = DATA.acts.filter(a=>{
-    if(a.status==='concluído') return false;
-    if(!busca) return true;
-    return (a.local||'').toLowerCase().includes(busca) || (a.desc||'').toLowerCase().includes(busca);
-  }).sort((a,b)=> (a.local||'').localeCompare(b.local||'') || (a.desc||'').localeCompare(b.desc||''));
-
-  document.getElementById('colab-pend-hint').textContent = pendentes.length+' atividade(s) pendente(s)';
-  const list = document.getElementById('colab-pend-list');
-  list.innerHTML = '';
-  if(pendentes.length===0){
-    const p = document.createElement('div');
-    p.className = 'empty-note';
-    p.textContent = 'Nenhuma atividade pendente para essa busca.';
-    list.appendChild(p);
-    return;
-  }
-  pendentes.slice(0,150).forEach(a=>{
-    const item = document.createElement('div');
-    item.className = 'colab-item';
-    item.innerHTML =
-      '<div class="colab-item-desc">'+(a.desc||'—')+'</div>'+
-      '<div class="colab-item-meta">'+(a.local||'—')+' · '+fmtH(a.horas)+'h'+
-        (a.resp? ' · Responsável atual: '+a.resp : ' · sem responsável definido')+
-        (a.situacao? ' · '+a.situacao : '')+
-      '</div>';
-    const actions = document.createElement('div');
-    actions.className = 'colab-item-actions';
-
-    const btnConcluir = document.createElement('button');
-    btnConcluir.className = 'colab-btn';
-    btnConcluir.type = 'button';
-    btnConcluir.textContent = 'Concluir';
-    btnConcluir.addEventListener('click', async ()=>{
-      const nome = exigirNome(); if(!nome) return;
-      btnConcluir.disabled = true;
-      const r = await postAction({ acao:'concluir', id:a.id, responsavel:nome });
-      btnConcluir.disabled = false;
-      if(r.ok){ await fetchLiveData(); }
-    });
-    actions.appendChild(btnConcluir);
-
-    const btnJust = document.createElement('button');
-    btnJust.className = 'colab-btn secondary';
-    btnJust.type = 'button';
-    btnJust.textContent = 'Justificar';
-    actions.appendChild(btnJust);
-
-    item.appendChild(actions);
-
-    const justBox = document.createElement('div');
-    justBox.className = 'colab-just-box';
-    const ta = document.createElement('textarea');
-    ta.placeholder = 'Por que essa atividade não foi realizada?';
-    const btnEnviarJust = document.createElement('button');
-    btnEnviarJust.className = 'colab-btn';
-    btnEnviarJust.type = 'button';
-    btnEnviarJust.textContent = 'Enviar justificativa';
-    btnEnviarJust.addEventListener('click', async ()=>{
-      const nome = exigirNome(); if(!nome) return;
-      const texto = (ta.value||'').trim();
-      if(!texto){ alert('Escreva a justificativa antes de enviar.'); return; }
-      btnEnviarJust.disabled = true;
-      const r = await postAction({ acao:'justificar', id:a.id, responsavel:nome, justificativa:texto });
-      btnEnviarJust.disabled = false;
-      if(r.ok){ await fetchLiveData(); }
-    });
-    justBox.appendChild(ta);
-    justBox.appendChild(btnEnviarJust);
-    item.appendChild(justBox);
-
-    btnJust.addEventListener('click', ()=> justBox.classList.toggle('open'));
-
-    list.appendChild(item);
-  });
-}
-
-inpColabBusca.addEventListener('input', renderColaborador);
-
-document.getElementById('btn-nova-atividade').addEventListener('click', async ()=>{
-  const nome = exigirNome(); if(!nome) return;
-  const desc = document.getElementById('nova-desc').value.trim();
-  if(!desc){ alert('Descreva a atividade.'); return; }
-  const payload = {
-    acao:'nova_atividade',
-    responsavel: nome,
-    desc,
-    local: document.getElementById('nova-local').value.trim(),
-    horas: document.getElementById('nova-horas').value || 0,
-    obs: document.getElementById('nova-obs').value.trim()
-  };
-  const r = await postAction(payload);
-  if(r.ok){
-    ['nova-desc','nova-local','nova-horas','nova-obs'].forEach(id=> document.getElementById(id).value='');
-    await fetchLiveData();
-  }
-});
-
-document.getElementById('btn-extra-atividade').addEventListener('click', async ()=>{
-  const nome = exigirNome(); if(!nome) return;
-  const desc = document.getElementById('extra-desc').value.trim();
-  if(!desc){ alert('Descreva a atividade.'); return; }
-  const payload = {
-    acao:'atividade_adicional',
-    responsavel: nome,
-    desc,
-    local: document.getElementById('extra-local').value.trim(),
-    horas: document.getElementById('extra-horas').value || 0,
-    dataExecucao: document.getElementById('extra-data').value || null,
-    obs: document.getElementById('extra-obs').value.trim()
-  };
-  const r = await postAction(payload);
-  if(r.ok){
-    ['extra-desc','extra-local','extra-horas','extra-obs','extra-data'].forEach(id=> document.getElementById(id).value='');
-    await fetchLiveData();
-  }
-});
-
-(function initExtraDataDefault(){
-  const el = document.getElementById('extra-data');
-  const now = new Date();
-  el.value = dateToIso(new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())));
-})();
-
 render();
 renderCalendario();
-renderColaborador();
-fetchLiveData();
 </script>

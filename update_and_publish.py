@@ -9,9 +9,8 @@ arquivo diretamente, so clicar duas vezes no .bat depois de salvar a planilha
 atualizada.
 
 Se a planilha mudar de nome ou de pasta, so editar o caminho em
-local_config.py (XLSX_PATH) -- esse mesmo arquivo tambem e usado pelo
-sync_sheets_to_excel.py, entao corrigir la corrige os dois scripts de uma
-vez.
+local_config.py (XLSX_PATH) -- o script tenta detectar sozinho um arquivo
+parecido na mesma pasta antes de dar erro.
 """
 import datetime
 import os

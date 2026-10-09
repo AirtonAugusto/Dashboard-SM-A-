@@ -56,14 +56,12 @@ def achar_coluna(headers, candidatos):
 
 def extrair_atividades(ws):
     headers = [c.value for c in ws[1]]
-    # RESPONSÁVEL e JUSTIFICATIVA usam busca por nome aproximado porque a
-    # planilha pode não ter essas colunas ainda (nesse caso ficam em
-    # branco) ou ter o cabeçalho escrito de um jeito ligeiramente diferente.
+    # RESPONSÁVEL, JUSTIFICATIVA, ORIGEM e DATA DE EXECUÇÃO usam busca por
+    # nome aproximado porque a planilha pode não ter essas colunas ainda
+    # (nesse caso ficam em branco) ou ter o cabeçalho escrito de um jeito
+    # ligeiramente diferente.
     idx_resp = achar_coluna(headers, ["RESPONSÁVEL", "RESPONSAVEL", "COLABORADOR"])
     idx_just = achar_coluna(headers, ["JUSTIFICATIVA", "MOTIVO", "MOTIVO DO ATRASO"])
-    # Campos novos do fluxo colaborador/Google Sheets — se a planilha Excel
-    # ainda não tiver essas colunas (caso normal, elas nascem lá), assume-se
-    # o valor padrão de uma atividade "de sempre", vinda do planejamento.
     idx_origem = achar_coluna(headers, ["ORIGEM"])
     idx_data_exec = achar_coluna(headers, ["DATA DE EXECUÇÃO", "DATA EXECUCAO", "DATA DA EXECUÇÃO"])
 
@@ -117,23 +115,7 @@ def carregar_dados(xlsx_path, aba_atividades="Atividades(SM&A)", aba_carga="Carg
     return {"acts": acts, "carga": carga}
 
 
-def carregar_sheets_api_url(cli_url, config_path="sheets_config.json"):
-    """URL do Web App do Apps Script (Google Sheets). Prioridade: argumento
-    de linha de comando > arquivo sheets_config.json > vazio (painel roda
-    só com os dados da planilha Excel, sem ações do colaborador)."""
-    if cli_url:
-        return cli_url.strip()
-    p = Path(config_path)
-    if p.exists():
-        try:
-            cfg = json.loads(p.read_text(encoding="utf-8"))
-            return (cfg.get("sheets_api_url") or "").strip()
-        except (json.JSONDecodeError, OSError):
-            pass
-    return ""
-
-
-def montar_html(dados, logo_path="assets/logo_anglogold.png", template_path="template.html", sheets_api_url=""):
+def montar_html(dados, logo_path="assets/logo_anglogold.png", template_path="template.html"):
     data_json = json.dumps(dados, ensure_ascii=False, separators=(",", ":"))
     data_json = data_json.replace("</script>", "<\\/script>")
 
@@ -141,8 +123,7 @@ def montar_html(dados, logo_path="assets/logo_anglogold.png", template_path="tem
 
     template = Path(template_path).read_text(encoding="utf-8")
     return (template.replace("__DATA_JSON__", data_json)
-                     .replace("__LION_B64__", logo_b64)
-                     .replace("__SHEETS_API_URL__", sheets_api_url))
+                     .replace("__LION_B64__", logo_b64))
 
 
 def main():
@@ -153,22 +134,16 @@ def main():
     ap.add_argument("--out", default="docs/index.html", help="Arquivo HTML final a gerar")
     ap.add_argument("--aba-atividades", default="Atividades(SM&A)", help="Nome da aba de atividades")
     ap.add_argument("--aba-carga", default="Carga Diária", help="Nome da aba de carga diária")
-    ap.add_argument("--sheets-api-url", default="", help="URL do Web App do Apps Script (Google Sheets), para as ações do colaborador. Se não informado, usa sheets_config.json ou fica vazio (painel só de leitura).")
     args = ap.parse_args()
 
     dados = carregar_dados(args.xlsx, args.aba_atividades, args.aba_carga)
-    sheets_api_url = carregar_sheets_api_url(args.sheets_api_url)
-    out_html = montar_html(dados, args.logo, args.template, sheets_api_url)
+    out_html = montar_html(dados, args.logo, args.template)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(out_html, encoding="utf-8", newline="\n")
 
     print(f"OK: {len(dados['acts'])} atividades, {len(dados['carga'])} dias de carga diária.")
-    if sheets_api_url:
-        print("Ações do colaborador: ATIVAS (Google Sheets configurado).")
-    else:
-        print("Ações do colaborador: DESATIVADAS (defina --sheets-api-url ou sheets_config.json).")
     print(f"Painel gerado em: {out_path.resolve()}")
 
 

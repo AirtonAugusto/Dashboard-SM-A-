@@ -6,9 +6,8 @@
 # `resolver_xlsx_path()` procura sozinho na mesma pasta se esse nome exato
 # não existir mais -- assim um próximo renome não quebra os scripts de novo.
 #
-# Tanto o update_and_publish.py quanto o sync_sheets_to_excel.py usam este
-# arquivo, então corrigir aqui corrige os dois de uma vez (se um dia o
-# auto-detect não achar nada, é só atualizar a linha XLSX_PATH abaixo).
+# O update_and_publish.py usa este arquivo (se um dia o auto-detect não
+# achar nada, é só atualizar a linha XLSX_PATH abaixo).
 import glob
 import os
 
