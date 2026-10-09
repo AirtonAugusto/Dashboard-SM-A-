@@ -121,6 +121,43 @@
     border-color:var(--accent);
   }
   .filter-group select option{color:#111;}
+
+  .ms-filter{position:relative;}
+  .ms-filter-btn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:rgba(255,255,255,0.06);border:1px solid var(--side-border);color:var(--side-text);
+    border-radius:8px;padding:9px 10px;font-size:13px;font-family:inherit;cursor:pointer;text-align:left;
+  }
+  .ms-filter-btn:hover{border-color:rgba(255,255,255,0.3);}
+  .ms-filter.open .ms-filter-btn{border-color:var(--accent);}
+  .ms-filter-btn-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ms-filter-arrow{flex:none;font-size:10px;color:var(--side-text-muted);transition:transform .15s;}
+  .ms-filter.open .ms-filter-arrow{transform:rotate(180deg);}
+  .ms-filter-panel{
+    display:none;position:absolute;top:calc(100% + 6px);left:0;width:290px;max-width:80vw;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);
+    z-index:60;padding:10px;color:var(--text-primary);
+  }
+  .ms-filter.open .ms-filter-panel{display:block;}
+  .ms-filter-search{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:7px 9px;font-size:12.5px;font-family:inherit;color:var(--text-primary);outline:none;margin-bottom:8px;
+  }
+  .ms-filter-search:focus{border-color:var(--accent);}
+  .ms-filter-all{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;padding:5px 4px;
+    border-bottom:1px solid var(--border);margin-bottom:4px;cursor:pointer;color:var(--text-primary);
+  }
+  .ms-filter-list{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;}
+  .ms-filter-group-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:8px 4px 4px;}
+  .ms-filter-item{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--text-primary);}
+  .ms-filter-item:hover{background:var(--surface-2);}
+  .ms-filter-item input{flex:none;}
+  .ms-filter-item-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+  .ms-filter-item-count{flex:none;color:var(--text-muted);font-size:11.5px;}
+  .ms-filter-empty{font-size:12px;color:var(--text-muted);padding:8px 4px;}
+  .ms-filter input[type="checkbox"]{accent-color:var(--accent);}
+
   .reset-btn{
     margin-top:2px;
     background:transparent;
@@ -335,7 +372,20 @@
 
     <div class="filter-group">
       <label class="filter-label">Atividade</label>
-      <select id="f-atividade"><option value="">Todos</option></select>
+      <div class="ms-filter" id="f-atividade">
+        <button type="button" class="ms-filter-btn" id="f-atividade-btn">
+          <span class="ms-filter-btn-label" id="f-atividade-label">Todas</span>
+          <span class="ms-filter-arrow">&#9662;</span>
+        </button>
+        <div class="ms-filter-panel" id="f-atividade-panel">
+          <input type="text" class="ms-filter-search" id="f-atividade-search" placeholder="Buscar atividade...">
+          <label class="ms-filter-all">
+            <input type="checkbox" id="f-atividade-all">
+            <span>Selecionar tudo</span>
+          </label>
+          <div class="ms-filter-list" id="f-atividade-list"></div>
+        </div>
+      </div>
     </div>
 
     <button class="reset-btn" id="btn-reset">Semana atual</button>
@@ -355,7 +405,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="painel" type="button">Painel</button>
-      <button class="tab-btn" data-tab="calendario" type="button">Calendário (3 semanas)</button>
+      <button class="tab-btn" data-tab="calendario" type="button">Calendário</button>
     </div>
 
     <div id="view-painel" class="view active">
@@ -398,7 +448,6 @@
         <span class="hint" id="local-hint"></span>
       </div>
       <div class="chart-scroll" id="chart-local-wrap"></div>
-      <div class="chart-caption">Clique em uma barra para ver as atividades daquele local.</div>
     </section>
 
     <section class="panel">
@@ -407,7 +456,7 @@
         <span class="hint" id="resp-hint"></span>
       </div>
       <div id="chart-resp-wrap"></div>
-      <div class="chart-caption">Clique em um nome para ver as atividades dessa pessoa. "Não atribuído" agrupa atividades sem responsável definido.</div>
+      <div class="chart-caption">"Não atribuído" agrupa atividades sem responsável definido.</div>
     </section>
 
     <section class="charts">
@@ -421,7 +470,7 @@
           <div class="legend-item"><span class="legend-dot" style="background:var(--good)"></span>Concluída</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--series-1)"></span>Programada / em andamento</div>
         </div>
-        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado. Clique em um dia para ver as atividades.</div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
       </div>
 
       <div class="panel">
@@ -430,7 +479,7 @@
           <span class="hint" id="tipo-semana-hint"></span>
         </div>
         <div id="tipo-semana-wrap"></div>
-        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado. Clique em um tipo para ver as atividades.</div>
+        <div class="chart-caption">Sempre mostra a semana corrente (segunda a sexta) — não muda com os filtros ao lado.</div>
       </div>
     </section>
 
@@ -504,7 +553,6 @@
           <span class="hint" id="cal-hint"></span>
         </div>
         <div id="cal-grid"></div>
-        <div class="chart-caption">Clique em um dia para ver a descrição, as horas e a subestação de cada atividade programada nele.</div>
       </section>
     </div>
 
@@ -607,7 +655,17 @@ function getCurrentWeekRange(){
 const situacaoOrder = ['Atrasado','A Programar','No prazo','Concluído'];
 const selLocal = document.getElementById('f-local');
 const selSituacao = document.getElementById('f-situacao');
-const selAtividade = document.getElementById('f-atividade');
+const msAtividade = document.getElementById('f-atividade');
+const msAtividadeBtn = document.getElementById('f-atividade-btn');
+const msAtividadeLabel = document.getElementById('f-atividade-label');
+const msAtividadePanel = document.getElementById('f-atividade-panel');
+const msAtividadeSearch = document.getElementById('f-atividade-search');
+const msAtividadeAll = document.getElementById('f-atividade-all');
+const msAtividadeList = document.getElementById('f-atividade-list');
+let selectedAtividades = new Set();
+let atividadeCats = [];
+let atividadeInds = [];
+let visibleAtividadeValues = [];
 const inpStart = document.getElementById('f-date-start');
 const inpEnd = document.getElementById('f-date-end');
 let minDate, maxDate;
@@ -617,7 +675,7 @@ let minDate, maxDate;
 function popularFiltros(manterSelecao){
   const valLocal = manterSelecao ? selLocal.value : '';
   const valSituacao = manterSelecao ? selSituacao.value : '';
-  const valAtividade = manterSelecao ? selAtividade.value : '';
+  const prevSelectedAtividades = manterSelecao ? new Set(selectedAtividades) : new Set();
 
   const locals = [...new Set(DATA.acts.map(a=>a.local))].filter(Boolean).sort();
   selLocal.innerHTML = '<option value="">Todos</option>';
@@ -634,32 +692,24 @@ function popularFiltros(manterSelecao){
   DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
   const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
 
-  selAtividade.innerHTML = '<option value="">Todas</option>';
   // Categorias gerais primeiro (ex: "Fibra" reúne toda descrição que
   // contém "fibra"), depois as descrições individuais exatas — as duas
-  // formas de filtrar vivem no mesmo select, como pedido pelo gestor.
+  // formas de filtrar vivem no mesmo dropdown, como pedido pelo gestor.
+  // Dá pra marcar mais de uma ao mesmo tempo (igual ao filtro de coluna
+  // do Excel / aos slicers do Power BI).
   const catsPresentes = Object.keys(CATEGORIAS).filter(cat=> DATA.acts.some(a=> categoriaCasa(cat, a.desc)));
-  if(catsPresentes.length){
-    const grpGeral = document.createElement('optgroup');
-    grpGeral.label = 'Categorias gerais';
-    catsPresentes.forEach(cat=>{
-      const n = DATA.acts.filter(a=> categoriaCasa(cat, a.desc)).length;
-      const o=document.createElement('option'); o.value='cat:'+cat; o.textContent=cat+' — geral ('+n+')';
-      grpGeral.appendChild(o);
-    });
-    selAtividade.appendChild(grpGeral);
-  }
-  const grpInd = document.createElement('optgroup');
-  grpInd.label = 'Atividades individuais';
-  descs.forEach(d=>{
-    const o=document.createElement('option'); o.value=d;
-    const label = d.length>52 ? d.slice(0,50)+'…' : d;
-    o.textContent = label+' ('+descCounts[d]+')';
-    o.title = d;
-    grpInd.appendChild(o);
+  atividadeCats = catsPresentes.map(cat=>{
+    const n = DATA.acts.filter(a=> categoriaCasa(cat, a.desc)).length;
+    return { value:'cat:'+cat, nome:cat, label:cat+' — geral ('+n+')', busca:cat.toLowerCase(), count:n };
   });
-  selAtividade.appendChild(grpInd);
-  if(valAtividade) selAtividade.value = valAtividade;
+  atividadeInds = descs.map(d=>{
+    const label = d.length>52 ? d.slice(0,50)+'…' : d;
+    return { value:d, nome:d, label:label+' ('+descCounts[d]+')', busca:d.toLowerCase(), title:d, count:descCounts[d] };
+  });
+  const valoresValidos = new Set([...atividadeCats, ...atividadeInds].map(it=> it.value));
+  selectedAtividades = new Set([...prevSelectedAtividades].filter(v=> valoresValidos.has(v)));
+  renderAtividadeList();
+  atualizarLabelAtividade();
 
   const allDates = DATA.acts.flatMap(a=>[a.ini,a.fim]).filter(Boolean).concat(DATA.carga.map(c=>c.data));
   if(allDates.length){
@@ -670,6 +720,114 @@ function popularFiltros(manterSelecao){
   }
 }
 
+function buildAtividadeItemRow(it){
+  const row = document.createElement('label');
+  row.className = 'ms-filter-item';
+  if(it.title) row.title = it.title;
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = selectedAtividades.has(it.value);
+  cb.addEventListener('change', ()=>{
+    if(cb.checked) selectedAtividades.add(it.value); else selectedAtividades.delete(it.value);
+    atualizarSelecionarTudoAtividade();
+    atualizarLabelAtividade();
+    render();
+  });
+  const span = document.createElement('span');
+  span.className = 'ms-filter-item-label';
+  span.textContent = it.nome;
+  row.appendChild(cb);
+  row.appendChild(span);
+  const count = document.createElement('span');
+  count.className = 'ms-filter-item-count';
+  count.textContent = it.count;
+  row.appendChild(count);
+  return row;
+}
+
+function renderAtividadeList(){
+  const termo = (msAtividadeSearch.value||'').toLowerCase();
+  msAtividadeList.innerHTML = '';
+  visibleAtividadeValues = [];
+
+  const cats = atividadeCats.filter(it=> it.busca.includes(termo));
+  if(cats.length){
+    const h = document.createElement('div');
+    h.className = 'ms-filter-group-label';
+    h.textContent = 'Categorias gerais';
+    msAtividadeList.appendChild(h);
+    cats.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeItemRow(it)); visibleAtividadeValues.push(it.value); });
+  }
+  const inds = atividadeInds.filter(it=> it.busca.includes(termo));
+  if(inds.length){
+    const h = document.createElement('div');
+    h.className = 'ms-filter-group-label';
+    h.textContent = 'Atividades individuais';
+    msAtividadeList.appendChild(h);
+    inds.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeItemRow(it)); visibleAtividadeValues.push(it.value); });
+  }
+  if(!cats.length && !inds.length){
+    const p = document.createElement('div');
+    p.className = 'ms-filter-empty';
+    p.textContent = 'Nenhuma atividade encontrada.';
+    msAtividadeList.appendChild(p);
+  }
+  atualizarSelecionarTudoAtividade();
+}
+
+function atualizarSelecionarTudoAtividade(){
+  if(!visibleAtividadeValues.length){
+    msAtividadeAll.checked = false;
+    msAtividadeAll.indeterminate = false;
+    return;
+  }
+  const marcados = visibleAtividadeValues.filter(v=> selectedAtividades.has(v)).length;
+  msAtividadeAll.checked = marcados===visibleAtividadeValues.length;
+  msAtividadeAll.indeterminate = marcados>0 && marcados<visibleAtividadeValues.length;
+}
+
+function atualizarLabelAtividade(){
+  if(selectedAtividades.size===0){ msAtividadeLabel.textContent = 'Todas'; return; }
+  if(selectedAtividades.size===1){
+    const v = [...selectedAtividades][0];
+    const it = [...atividadeCats, ...atividadeInds].find(x=> x.value===v);
+    msAtividadeLabel.textContent = it ? it.nome : '1 selecionada';
+    return;
+  }
+  msAtividadeLabel.textContent = selectedAtividades.size+' selecionadas';
+}
+
+msAtividadeAll.addEventListener('change', ()=>{
+  if(msAtividadeAll.checked){
+    visibleAtividadeValues.forEach(v=> selectedAtividades.add(v));
+  } else {
+    visibleAtividadeValues.forEach(v=> selectedAtividades.delete(v));
+  }
+  renderAtividadeList();
+  atualizarLabelAtividade();
+  render();
+});
+msAtividadeSearch.addEventListener('input', renderAtividadeList);
+msAtividadeBtn.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  const abrindo = !msAtividade.classList.contains('open');
+  msAtividade.classList.toggle('open', abrindo);
+  if(abrindo){
+    msAtividadeSearch.value = '';
+    renderAtividadeList();
+    msAtividadeSearch.focus();
+  }
+});
+msAtividadePanel.addEventListener('click', (e)=> e.stopPropagation());
+document.addEventListener('click', (e)=>{
+  if(msAtividade.classList.contains('open') && !msAtividade.contains(e.target)){
+    msAtividade.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape') msAtividade.classList.remove('open');
+});
+
 popularFiltros(false);
 
 // Padrão ao abrir o painel: semana atual (não o histórico inteiro) — cada visita recalcula
@@ -678,9 +836,13 @@ const initialWeek = getCurrentWeekRange();
 inpStart.value = initialWeek.start;
 inpEnd.value = initialWeek.end;
 
-[selLocal, selSituacao, selAtividade, inpStart, inpEnd].forEach(el=> el.addEventListener('change', render));
+[selLocal, selSituacao, inpStart, inpEnd].forEach(el=> el.addEventListener('change', render));
 document.getElementById('btn-reset').addEventListener('click', ()=>{
-  selLocal.value=''; selSituacao.value=''; selAtividade.value='';
+  selLocal.value=''; selSituacao.value='';
+  selectedAtividades.clear();
+  msAtividade.classList.remove('open');
+  renderAtividadeList();
+  atualizarLabelAtividade();
   const cw = getCurrentWeekRange();
   inpStart.value=cw.start; inpEnd.value=cw.end;
   render();
@@ -978,12 +1140,16 @@ function buildHBarList(container, items, opts){
 function passesFilters(a){
   if(selLocal.value && a.local!==selLocal.value) return false;
   if(selSituacao.value && a.situacao!==selSituacao.value) return false;
-  if(selAtividade.value){
-    if(selAtividade.value.startsWith('cat:')){
-      if(!categoriaCasa(selAtividade.value.slice(4), a.desc)) return false;
-    } else if(a.desc!==selAtividade.value){
-      return false;
+  if(selectedAtividades.size){
+    let bateu = false;
+    for(const v of selectedAtividades){
+      if(v.startsWith('cat:')){
+        if(categoriaCasa(v.slice(4), a.desc)){ bateu = true; break; }
+      } else if(a.desc===v){
+        bateu = true; break;
+      }
     }
+    if(!bateu) return false;
   }
   const start = inpStart.value, end = inpEnd.value;
   const periodoCompleto = (start===minDate && end===maxDate);
