@@ -158,6 +158,17 @@
   .ms-filter-empty{font-size:12px;color:var(--text-muted);padding:8px 4px;}
   .ms-filter input[type="checkbox"]{accent-color:var(--accent);}
 
+  .ms-filter-cat-row{padding-left:2px;}
+  .ms-filter-cat-label{font-weight:700;}
+  .ms-filter-arrow-btn{
+    flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+    background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted);font-size:10px;
+    transition:transform .15s;
+  }
+  .ms-filter-arrow-btn.is-open{transform:rotate(90deg);}
+  .ms-filter-arrow-btn:hover{color:var(--text-primary);}
+  .ms-filter-item-child{padding-left:30px;}
+
   .reset-btn{
     margin-top:2px;
     background:transparent;
@@ -668,7 +679,8 @@ const msAtividadeAll = document.getElementById('f-atividade-all');
 const msAtividadeList = document.getElementById('f-atividade-list');
 let selectedAtividades = new Set();
 let atividadeCats = [];
-let atividadeInds = [];
+let atividadeOutras = [];
+let atividadeExpandidas = new Set();
 let visibleAtividadeValues = [];
 const inpStart = document.getElementById('f-date-start');
 const inpEnd = document.getElementById('f-date-end');
@@ -696,21 +708,28 @@ function popularFiltros(manterSelecao){
   DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
   const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
 
-  // Categorias gerais primeiro (ex: "Fibra" reúne toda descrição que
-  // contém "fibra"), depois as descrições individuais exatas — as duas
-  // formas de filtrar vivem no mesmo dropdown, como pedido pelo gestor.
-  // Dá pra marcar mais de uma ao mesmo tempo (igual ao filtro de coluna
-  // do Excel / aos slicers do Power BI).
+  // Categorias gerais (ex: "Fibra" reúne toda descrição que contém
+  // "fibra") — cada uma com uma seta pra abrir e ver as descrições
+  // individuais dela, em ordem alfabética. O que não bate com nenhuma
+  // categoria aparece à parte, em "Outras atividades", também em ordem
+  // alfabética. Dá pra marcar mais de um item ao mesmo tempo (igual ao
+  // filtro de coluna do Excel / aos slicers do Power BI).
+  const ordemAlfabetica = (a,b)=> a.localeCompare(b, 'pt-BR', {sensitivity:'base'});
   const catsPresentes = Object.keys(CATEGORIAS).filter(cat=> DATA.acts.some(a=> categoriaCasa(cat, a.desc)));
   atividadeCats = catsPresentes.map(cat=>{
-    const n = DATA.acts.filter(a=> categoriaCasa(cat, a.desc)).length;
-    return { value:'cat:'+cat, nome:cat, label:cat+' — geral ('+n+')', busca:cat.toLowerCase(), count:n };
+    const filhos = descs.filter(d=> categoriaCasa(cat, d)).sort(ordemAlfabetica).map(d=>
+      ({ value:d, nome:d, busca:d.toLowerCase(), title:d, count:descCounts[d] }));
+    const n = filhos.reduce((s,f)=> s+f.count, 0);
+    return { value:'cat:'+cat, nome:cat, busca:cat.toLowerCase(), count:n, children:filhos };
   });
-  atividadeInds = descs.map(d=>{
-    const label = d.length>52 ? d.slice(0,50)+'…' : d;
-    return { value:d, nome:d, label:label+' ('+descCounts[d]+')', busca:d.toLowerCase(), title:d, count:descCounts[d] };
-  });
-  const valoresValidos = new Set([...atividadeCats, ...atividadeInds].map(it=> it.value));
+  const descsComCategoria = new Set(atividadeCats.flatMap(c=> c.children.map(f=> f.value)));
+  atividadeOutras = descs.filter(d=> !descsComCategoria.has(d)).sort(ordemAlfabetica).map(d=>
+    ({ value:d, nome:d, busca:d.toLowerCase(), title:d, count:descCounts[d] }));
+  const valoresValidos = new Set([
+    ...atividadeCats.map(c=> c.value),
+    ...atividadeCats.flatMap(c=> c.children.map(f=> f.value)),
+    ...atividadeOutras.map(o=> o.value),
+  ]);
   selectedAtividades = new Set([...prevSelectedAtividades].filter(v=> valoresValidos.has(v)));
   renderAtividadeList();
   atualizarLabelAtividade();
@@ -724,9 +743,9 @@ function popularFiltros(manterSelecao){
   }
 }
 
-function buildAtividadeItemRow(it){
+function buildAtividadeLeafRow(it, indentado){
   const row = document.createElement('label');
-  row.className = 'ms-filter-item';
+  row.className = 'ms-filter-item'+(indentado ? ' ms-filter-item-child' : '');
   if(it.title) row.title = it.title;
   const cb = document.createElement('input');
   cb.type = 'checkbox';
@@ -749,28 +768,100 @@ function buildAtividadeItemRow(it){
   return row;
 }
 
+// Linha da categoria: seta pra expandir/recolher (mostra as descrições
+// dela, em ordem alfabética) + caixinha própria pra marcar a categoria
+// inteira de uma vez. Não é um <label> (como as linhas simples) porque
+// a seta e a caixinha precisam reagir separado ao clique.
+function buildAtividadeCategoriaRow(cat, expandido){
+  const row = document.createElement('div');
+  row.className = 'ms-filter-item ms-filter-cat-row';
+
+  const arrow = document.createElement('button');
+  arrow.type = 'button';
+  arrow.className = 'ms-filter-arrow-btn'+(expandido ? ' is-open' : '');
+  arrow.innerHTML = '&#9656;';
+  arrow.setAttribute('aria-label', expandido ? 'Recolher '+cat.nome : 'Expandir '+cat.nome+' para ver as atividades individuais');
+  arrow.addEventListener('click', (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(atividadeExpandidas.has(cat.value)) atividadeExpandidas.delete(cat.value);
+    else atividadeExpandidas.add(cat.value);
+    renderAtividadeList();
+  });
+
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = selectedAtividades.has(cat.value);
+  cb.addEventListener('click', (e)=> e.stopPropagation());
+  cb.addEventListener('change', ()=>{
+    if(cb.checked) selectedAtividades.add(cat.value); else selectedAtividades.delete(cat.value);
+    atualizarSelecionarTudoAtividade();
+    atualizarLabelAtividade();
+    render();
+  });
+
+  const span = document.createElement('span');
+  span.className = 'ms-filter-item-label ms-filter-cat-label';
+  span.textContent = cat.nome;
+
+  const count = document.createElement('span');
+  count.className = 'ms-filter-item-count';
+  count.textContent = cat.count;
+
+  row.appendChild(arrow);
+  row.appendChild(cb);
+  row.appendChild(span);
+  row.appendChild(count);
+  // clicar em qualquer parte da linha que não seja a seta ou a própria
+  // caixinha também marca/desmarca a categoria (igual as linhas simples).
+  row.addEventListener('click', (e)=>{
+    if(e.target===arrow || e.target===cb) return;
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event('change'));
+  });
+  return row;
+}
+
 function renderAtividadeList(){
   const termo = (msAtividadeSearch.value||'').toLowerCase();
   msAtividadeList.innerHTML = '';
   visibleAtividadeValues = [];
 
-  const cats = atividadeCats.filter(it=> it.busca.includes(termo));
-  if(cats.length){
+  // Uma categoria aparece se o nome dela bate com a busca ou se algum
+  // filho dela bate; nesse segundo caso ela se expande sozinha pra
+  // mostrar só os filhos que bateram (ou todos, se foi o nome da
+  // categoria que bateu com a busca).
+  const catsVisiveis = atividadeCats.map(cat=>{
+    const catBate = termo==='' || cat.busca.includes(termo);
+    const filhos = cat.children.filter(f=> catBate || f.busca.includes(termo));
+    return { cat, filhos, mostrar: catBate || filhos.length>0 };
+  }).filter(x=> x.mostrar);
+
+  if(catsVisiveis.length){
     const h = document.createElement('div');
     h.className = 'ms-filter-group-label';
     h.textContent = 'Categorias gerais';
     msAtividadeList.appendChild(h);
-    cats.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeItemRow(it)); visibleAtividadeValues.push(it.value); });
+    catsVisiveis.forEach(({cat, filhos})=>{
+      visibleAtividadeValues.push(cat.value, ...filhos.map(f=> f.value));
+      const expandido = termo!=='' || atividadeExpandidas.has(cat.value);
+      msAtividadeList.appendChild(buildAtividadeCategoriaRow(cat, expandido));
+      if(expandido){
+        filhos.forEach(f=> msAtividadeList.appendChild(buildAtividadeLeafRow(f, true)));
+      }
+    });
   }
-  const inds = atividadeInds.filter(it=> it.busca.includes(termo));
-  if(inds.length){
+
+  const outrasVisiveis = atividadeOutras.filter(it=> termo===''||it.busca.includes(termo));
+  if(outrasVisiveis.length){
     const h = document.createElement('div');
     h.className = 'ms-filter-group-label';
-    h.textContent = 'Atividades individuais';
+    h.textContent = 'Outras atividades';
     msAtividadeList.appendChild(h);
-    inds.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeItemRow(it)); visibleAtividadeValues.push(it.value); });
+    outrasVisiveis.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeLeafRow(it, false)); visibleAtividadeValues.push(it.value); });
   }
-  if(!cats.length && !inds.length){
+
+  if(!catsVisiveis.length && !outrasVisiveis.length){
     const p = document.createElement('div');
     p.className = 'ms-filter-empty';
     p.textContent = 'Nenhuma atividade encontrada.';
@@ -790,11 +881,20 @@ function atualizarSelecionarTudoAtividade(){
   msAtividadeAll.indeterminate = marcados>0 && marcados<visibleAtividadeValues.length;
 }
 
+function buscarItemAtividade(valor){
+  for(const cat of atividadeCats){
+    if(cat.value===valor) return cat;
+    const filho = cat.children.find(f=> f.value===valor);
+    if(filho) return filho;
+  }
+  return atividadeOutras.find(it=> it.value===valor);
+}
+
 function atualizarLabelAtividade(){
   if(selectedAtividades.size===0){ msAtividadeLabel.textContent = 'Todas'; return; }
   if(selectedAtividades.size===1){
     const v = [...selectedAtividades][0];
-    const it = [...atividadeCats, ...atividadeInds].find(x=> x.value===v);
+    const it = buscarItemAtividade(v);
     msAtividadeLabel.textContent = it ? it.nome : '1 selecionada';
     return;
   }
