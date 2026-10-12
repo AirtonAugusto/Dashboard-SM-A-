@@ -646,6 +646,19 @@ function addDaysIso(iso, days){
   dt.setUTCDate(dt.getUTCDate()+days);
   return dateToIso(dt);
 }
+// Número da semana no ano (padrão ISO 8601: semana começa na segunda,
+// semana 1 é a que contém a primeira quinta-feira do ano) -- usado no
+// calendário pra mostrar "Semana 41" em vez de "Semana 1/2/3" (que não
+// dizia em que momento do ano aquela semana realmente está).
+function isoWeekNumber(iso){
+  const d = isoToDate(iso);
+  const diaSemana = (d.getUTCDay()+6)%7; // 0=segunda..6=domingo
+  d.setUTCDate(d.getUTCDate()-diaSemana+3); // quinta-feira da mesma semana
+  const primeiraQuinta = new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const diaSemanaIni = (primeiraQuinta.getUTCDay()+6)%7;
+  primeiraQuinta.setUTCDate(primeiraQuinta.getUTCDate()-diaSemanaIni+3);
+  return 1+Math.round((d-primeiraQuinta)/(7*24*3600*1000));
+}
 // Uma atividade "ocorre" num dia se esse dia cai dentro do intervalo
 // [ini, fim] dela -- nao so no dia de inicio. Isso e o que faz uma
 // atividade de varios dias (ex: 02/10 a 09/10) aparecer em todos os dias
@@ -1473,7 +1486,7 @@ function renderCalendario(){
     const weekDays = janela.days.slice(w*5, w*5+5);
     const label = document.createElement('div');
     label.className = 'cal-week-label';
-    label.textContent = 'Semana '+(w+1)+' · '+fmtDateBR(weekDays[0])+' a '+fmtDateBR(weekDays[4]);
+    label.textContent = 'Semana '+isoWeekNumber(weekDays[0])+' · '+fmtDateBR(weekDays[0])+' a '+fmtDateBR(weekDays[4]);
     weekWrap.appendChild(label);
 
     const daysWrap = document.createElement('div');
