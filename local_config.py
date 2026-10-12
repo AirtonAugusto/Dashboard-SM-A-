@@ -12,7 +12,7 @@ import glob
 import os
 
 PASTA_PLANILHA = r"C:\Users\CARDOZO\Documents\Airton Augusto"
-XLSX_PATH = os.path.join(PASTA_PLANILHA, "Programação(SM&A).xlsm")
+XLSX_PATH = os.path.join(PASTA_PLANILHA, "Programação(SM&A).xlsx")
 
 
 def resolver_xlsx_path():
