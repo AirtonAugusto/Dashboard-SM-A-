@@ -126,46 +126,33 @@
   .ms-filter-arrow{flex:none;transition:transform .15s;}
   .ms-filter.open .ms-filter-arrow{transform:rotate(180deg);}
   .ms-filter-panel{
-    display:none;position:absolute;top:calc(100% + 8px);left:0;width:340px;max-width:calc(100vw - 32px);
+    display:none;position:fixed;width:340px;
     background:var(--card);border:1px solid var(--border);border-radius:12px;
     box-shadow:0 18px 40px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.08);
     z-index:60;color:var(--text);font-size:13px;overflow:hidden;color-scheme:light dark;
   }
   .ms-filter.open .ms-filter-panel{display:flex;flex-direction:column;}
-  .ms-filter-search-wrap{padding:12px 12px 8px;}
+  .ms-filter-search-wrap{flex:none;padding:12px 12px 8px;}
   .ms-filter-search-box{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--field);}
   .ms-filter-search-box:focus-within{border-color:var(--muted);}
   .ms-filter-search{flex:1;min-width:0;border:0;background:transparent;font-size:13px;color:var(--text);outline:none;}
-  .ms-filter-body{padding:0 6px 6px;display:flex;flex-direction:column;}
+  .ms-filter-search:focus-visible{outline:none;}
+  .ms-filter-body{flex:1 1 auto;min-height:0;padding:0 6px 6px;display:flex;flex-direction:column;}
   .ms-filter-all{
-    display:flex;align-items:center;gap:10px;height:36px;padding:0 10px 0 36px;border-radius:6px;cursor:pointer;
+    flex:none;display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:6px;cursor:pointer;
     border-bottom:1px solid var(--border);font-weight:600;
   }
   .ms-filter-all-count{margin-left:auto;font-size:12px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;}
-  .ms-filter-list{max-height:320px;overflow-y:auto;display:flex;flex-direction:column;}
-  .ms-filter-group-label{padding:12px 10px 6px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-  .ms-filter-group-label.is-sep{margin-top:4px;border-top:1px solid var(--border);padding-top:14px;}
-  .ms-filter-item{display:flex;align-items:center;gap:10px;min-height:32px;padding:0 10px 0 36px;border-radius:6px;cursor:pointer;transition:background .12s ease;}
+  .ms-filter-list{flex:1 1 auto;min-height:0;max-height:360px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;padding-top:4px;}
+  .ms-filter-item{flex:none;display:flex;align-items:center;gap:10px;min-height:36px;padding:0 10px;border-radius:6px;cursor:pointer;transition:background .12s ease;}
   .ms-filter-item:hover,.ms-filter-all:hover{background:var(--hover);}
   .ms-filter-item-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .ms-filter-item-count{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .ms-filter-item.is-checked{font-weight:600;}
   .ms-filter-item.is-checked .ms-filter-item-count{color:var(--accent-ink);font-weight:600;}
   .ms-filter-empty{font-size:12.5px;color:var(--muted);padding:12px 10px;}
   .ms-filter input[type="checkbox"]{flex:none;width:16px;height:16px;margin:0;accent-color:#1a1a1a;cursor:pointer;}
-  .ms-filter-cat-row{gap:4px;padding-left:4px;min-height:34px;}
-  .ms-filter-cat-row input[type="checkbox"]{margin-right:6px;}
-  .ms-filter-cat-label{font-weight:600;}
-  .ms-filter-arrow-btn{
-    flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-    background:transparent;border:0;border-radius:4px;padding:0;cursor:pointer;color:var(--muted);transition:transform .15s;
-  }
-  .ms-filter-arrow-btn:hover{background:var(--accent-soft);color:var(--text);}
-  .ms-filter-arrow-btn.is-open{transform:rotate(90deg);color:var(--text);}
-  .ms-filter-children{display:flex;flex-direction:column;margin-left:30px;padding-left:10px;border-left:1px solid var(--border);}
-  .ms-filter-children .ms-filter-item{padding-left:10px;min-height:30px;font-size:12.5px;}
-  .ms-filter-children .ms-filter-item input[type="checkbox"]{width:14px;height:14px;}
-  .ms-filter-children .ms-filter-item-count{font-size:11.5px;}
-  .ms-filter-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--border);background:var(--field);}
+  .ms-filter-foot{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--border);background:var(--field);}
   .ms-filter-clear{height:34px;padding:0 12px;border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;}
   .ms-filter-clear:hover{background:var(--accent-soft);color:var(--text);}
   .ms-filter-apply{height:34px;padding:0 16px;border:0;background:#111;color:#fff;font-size:13px;font-weight:700;cursor:pointer;border-radius:8px;}
@@ -660,11 +647,12 @@ if(temaSistemaEscuro && temaSistemaEscuro.addEventListener){
 }
 aplicarTema(temaAtual());
 
-// Categorias gerais reconhecidas na descrição da atividade (substring,
-// sem diferenciar maiúscula/minúscula) — usadas para o filtro "Atividade"
-// oferecer tanto opções individuais quanto opções gerais que reúnem
-// várias descrições parecidas no mesmo lugar. Para adicionar uma nova
-// categoria geral, é só acrescentar uma linha aqui.
+// Categorias do filtro "Atividade" (igual a um slicer do Power BI): cada
+// categoria reúne toda descrição que contém uma das palavras-chave
+// (substring, sem diferenciar maiúscula/minúscula). Uma atividade pode
+// cair em mais de uma categoria (ex: "fibra de detecção de arco" entra em
+// Fibra e em Detecção de Arco). O que não bate com nenhuma vai para
+// "Outras". Para criar uma categoria nova, é só acrescentar uma linha aqui.
 const CATEGORIAS = {
   'Fibra': ['fibra'],
   'Retrofit': ['retrofit'],
@@ -672,9 +660,17 @@ const CATEGORIAS = {
   'Diagrama': ['diagrama'],
   "Falta de fase nos TP's": ['falta de fase'],
   'Detecção de Arco': ['arco'],
+  'Manutenção preventiva': ['preventiva'],
+  'Aterramento': ['aterramento'],
+  'Disjuntor': ['disjuntor'],
+  'Seletividade e estudos': ['seletividade', 'estudo'],
 };
+const CATEGORIA_OUTRAS = 'Outras';
 function categoriaCasa(categoria, desc){
   const alvo = (desc||'').toLowerCase();
+  if(categoria===CATEGORIA_OUTRAS){
+    return !Object.values(CATEGORIAS).some(kws=> kws.some(kw=> alvo.includes(kw)));
+  }
   return (CATEGORIAS[categoria]||[]).some(kw=> alvo.includes(kw));
 }
 
@@ -783,8 +779,6 @@ const msAtividadeAll = document.getElementById('f-atividade-all');
 const msAtividadeList = document.getElementById('f-atividade-list');
 let selectedAtividades = new Set();
 let atividadeCats = [];
-let atividadeOutras = [];
-let atividadeExpandidas = new Set();
 let visibleAtividadeValues = [];
 const inpStart = document.getElementById('f-date-start');
 const inpEnd = document.getElementById('f-date-end');
@@ -808,32 +802,18 @@ function popularFiltros(manterSelecao){
   situacoes.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; selSituacao.appendChild(o); });
   if(situacoes.includes(valSituacao)) selSituacao.value = valSituacao;
 
-  const descCounts = {};
-  DATA.acts.forEach(a=>{ descCounts[a.desc]=(descCounts[a.desc]||0)+1; });
-  const descs = Object.keys(descCounts).sort((a,b)=> descCounts[b]-descCounts[a]);
-
-  // Categorias gerais (ex: "Fibra" reúne toda descrição que contém
-  // "fibra") — cada uma com uma seta pra abrir e ver as descrições
-  // individuais dela, em ordem alfabética. O que não bate com nenhuma
-  // categoria aparece à parte, em "Outras atividades", também em ordem
-  // alfabética. Dá pra marcar mais de um item ao mesmo tempo (igual ao
-  // filtro de coluna do Excel / aos slicers do Power BI).
-  const ordemAlfabetica = (a,b)=> a.localeCompare(b, 'pt-BR', {sensitivity:'base'});
-  const catsPresentes = Object.keys(CATEGORIAS).filter(cat=> DATA.acts.some(a=> categoriaCasa(cat, a.desc)));
-  atividadeCats = catsPresentes.map(cat=>{
-    const filhos = descs.filter(d=> categoriaCasa(cat, d)).sort(ordemAlfabetica).map(d=>
-      ({ value:d, nome:d, busca:d.toLowerCase(), title:d, count:descCounts[d] }));
-    const n = filhos.reduce((s,f)=> s+f.count, 0);
-    return { value:'cat:'+cat, nome:cat, busca:cat.toLowerCase(), count:n, children:filhos };
-  });
-  const descsComCategoria = new Set(atividadeCats.flatMap(c=> c.children.map(f=> f.value)));
-  atividadeOutras = descs.filter(d=> !descsComCategoria.has(d)).sort(ordemAlfabetica).map(d=>
-    ({ value:d, nome:d, busca:d.toLowerCase(), title:d, count:descCounts[d] }));
-  const valoresValidos = new Set([
-    ...atividadeCats.map(c=> c.value),
-    ...atividadeCats.flatMap(c=> c.children.map(f=> f.value)),
-    ...atividadeOutras.map(o=> o.value),
-  ]);
+  // Só as categorias que têm alguma atividade na planilha, na ordem do
+  // objeto CATEGORIAS, com "Outras" por último.
+  atividadeCats = [...Object.keys(CATEGORIAS), CATEGORIA_OUTRAS].map(cat=>{
+    const acts = DATA.acts.filter(a=> categoriaCasa(cat, a.desc));
+    const descs = [...new Set(acts.map(a=> a.desc))];
+    return {
+      value: cat, nome: cat, count: acts.length,
+      busca: [cat, ...descs].join('\n').toLowerCase(),
+      exemplos: descs.slice(0, 8).join('\n')+(descs.length>8 ? '\n…' : '')
+    };
+  }).filter(c=> c.count>0);
+  const valoresValidos = new Set(atividadeCats.map(c=> c.value));
   selectedAtividades = new Set([...prevSelectedAtividades].filter(v=> valoresValidos.has(v)));
   renderAtividadeList();
   atualizarLabelAtividade();
@@ -847,61 +827,14 @@ function popularFiltros(manterSelecao){
   }
 }
 
-function buildAtividadeLeafRow(it){
+function buildAtividadeCategoriaRow(cat){
   const row = document.createElement('label');
-  const marcado = selectedAtividades.has(it.value);
-  row.className = 'ms-filter-item'+(marcado ? ' is-checked' : '');
-  if(it.title) row.title = it.title;
-  const cb = document.createElement('input');
-  cb.type = 'checkbox';
-  cb.checked = marcado;
-  cb.addEventListener('change', ()=>{
-    if(cb.checked) selectedAtividades.add(it.value); else selectedAtividades.delete(it.value);
-    row.classList.toggle('is-checked', cb.checked);
-    atualizarSelecionarTudoAtividade();
-    atualizarLabelAtividade();
-    render();
-  });
-  const span = document.createElement('span');
-  span.className = 'ms-filter-item-label';
-  span.textContent = it.nome;
-  row.appendChild(cb);
-  row.appendChild(span);
-  const count = document.createElement('span');
-  count.className = 'ms-filter-item-count';
-  count.textContent = it.count;
-  row.appendChild(count);
-  return row;
-}
-
-// Linha da categoria: seta pra expandir/recolher (mostra as descrições
-// dela, em ordem alfabética) + caixinha própria pra marcar a categoria
-// inteira de uma vez. Não é um <label> (como as linhas simples) porque
-// a seta e a caixinha precisam reagir separado ao clique.
-function buildAtividadeCategoriaRow(cat, expandido){
-  const row = document.createElement('div');
   const marcado = selectedAtividades.has(cat.value);
-  row.className = 'ms-filter-item ms-filter-cat-row'+(marcado ? ' is-checked' : '');
-
-  const arrow = document.createElement('button');
-  arrow.type = 'button';
-  arrow.className = 'ms-filter-arrow-btn'+(expandido ? ' is-open' : '');
-  arrow.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5 7.5 5 3 8.5z" fill="currentColor"></path></svg>';
-  arrow.setAttribute('aria-expanded', expandido ? 'true' : 'false');
-  arrow.setAttribute('aria-label', expandido ? 'Recolher '+cat.nome : 'Expandir '+cat.nome+' para ver as atividades individuais');
-  arrow.addEventListener('click', (e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    if(atividadeExpandidas.has(cat.value)) atividadeExpandidas.delete(cat.value);
-    else atividadeExpandidas.add(cat.value);
-    renderAtividadeList();
-  });
-
+  row.className = 'ms-filter-item'+(marcado ? ' is-checked' : '');
+  row.title = cat.exemplos;
   const cb = document.createElement('input');
   cb.type = 'checkbox';
   cb.checked = marcado;
-  cb.setAttribute('aria-label', cat.nome);
-  cb.addEventListener('click', (e)=> e.stopPropagation());
   cb.addEventListener('change', ()=>{
     if(cb.checked) selectedAtividades.add(cat.value); else selectedAtividades.delete(cat.value);
     row.classList.toggle('is-checked', cb.checked);
@@ -909,75 +842,31 @@ function buildAtividadeCategoriaRow(cat, expandido){
     atualizarLabelAtividade();
     render();
   });
-
   const span = document.createElement('span');
-  span.className = 'ms-filter-item-label ms-filter-cat-label';
+  span.className = 'ms-filter-item-label';
   span.textContent = cat.nome;
-
   const count = document.createElement('span');
   count.className = 'ms-filter-item-count';
   count.textContent = cat.count;
-
-  row.appendChild(arrow);
   row.appendChild(cb);
   row.appendChild(span);
   row.appendChild(count);
-  // clicar em qualquer parte da linha que não seja a seta ou a própria
-  // caixinha também marca/desmarca a categoria (igual as linhas simples).
-  row.addEventListener('click', (e)=>{
-    if(arrow.contains(e.target) || e.target===cb) return;
-    cb.checked = !cb.checked;
-    cb.dispatchEvent(new Event('change'));
-  });
   return row;
 }
 
+// Só categorias gerais (como um slicer do Power BI): marcar "Fibra" mostra
+// todas as atividades com fibra, sem listar cada descrição. A busca acha a
+// categoria pelo nome ou por qualquer descrição que ela reúne.
 function renderAtividadeList(){
   const termo = (msAtividadeSearch.value||'').toLowerCase();
   msAtividadeList.innerHTML = '';
-  visibleAtividadeValues = [];
-
-  // Uma categoria aparece se o nome dela bate com a busca ou se algum
-  // filho dela bate; nesse segundo caso ela se expande sozinha pra
-  // mostrar só os filhos que bateram (ou todos, se foi o nome da
-  // categoria que bateu com a busca).
-  const catsVisiveis = atividadeCats.map(cat=>{
-    const catBate = termo==='' || cat.busca.includes(termo);
-    const filhos = cat.children.filter(f=> catBate || f.busca.includes(termo));
-    return { cat, filhos, mostrar: catBate || filhos.length>0 };
-  }).filter(x=> x.mostrar);
-
-  if(catsVisiveis.length){
-    const h = document.createElement('div');
-    h.className = 'ms-filter-group-label';
-    h.textContent = 'Categorias gerais';
-    msAtividadeList.appendChild(h);
-    catsVisiveis.forEach(({cat, filhos})=>{
-      visibleAtividadeValues.push(cat.value, ...filhos.map(f=> f.value));
-      const expandido = termo!=='' || atividadeExpandidas.has(cat.value);
-      msAtividadeList.appendChild(buildAtividadeCategoriaRow(cat, expandido));
-      if(expandido && filhos.length){
-        const box = document.createElement('div');
-        box.className = 'ms-filter-children';
-        filhos.forEach(f=> box.appendChild(buildAtividadeLeafRow(f)));
-        msAtividadeList.appendChild(box);
-      }
-    });
-  }
-
-  const outrasVisiveis = atividadeOutras.filter(it=> termo===''||it.busca.includes(termo));
-  if(outrasVisiveis.length){
-    const h = document.createElement('div');
-    h.className = 'ms-filter-group-label'+(catsVisiveis.length ? ' is-sep' : '');
-    h.textContent = 'Outras atividades';
-    msAtividadeList.appendChild(h);
-    outrasVisiveis.forEach(it=>{ msAtividadeList.appendChild(buildAtividadeLeafRow(it)); visibleAtividadeValues.push(it.value); });
-  }
-
-  if(!catsVisiveis.length && !outrasVisiveis.length){
+  const visiveis = atividadeCats.filter(cat=> termo==='' || cat.busca.includes(termo));
+  visibleAtividadeValues = visiveis.map(cat=> cat.value);
+  visiveis.forEach(cat=> msAtividadeList.appendChild(buildAtividadeCategoriaRow(cat)));
+  if(!visiveis.length){
     const p = document.createElement('div');
     p.className = 'ms-filter-empty';
-    p.textContent = 'Nenhuma atividade encontrada.';
+    p.textContent = 'Nenhuma categoria encontrada.';
     msAtividadeList.appendChild(p);
   }
   atualizarSelecionarTudoAtividade();
@@ -994,28 +883,15 @@ function atualizarSelecionarTudoAtividade(){
   msAtividadeAll.indeterminate = marcados>0 && marcados<visibleAtividadeValues.length;
 }
 
-function buscarItemAtividade(valor){
-  for(const cat of atividadeCats){
-    if(cat.value===valor) return cat;
-    const filho = cat.children.find(f=> f.value===valor);
-    if(filho) return filho;
-  }
-  return atividadeOutras.find(it=> it.value===valor);
-}
-
 function passaFiltroAtividade(a){
   if(!selectedAtividades.size) return true;
   for(const v of selectedAtividades){
-    if(v.startsWith('cat:')){
-      if(categoriaCasa(v.slice(4), a.desc)) return true;
-    } else if(a.desc===v){
-      return true;
-    }
+    if(categoriaCasa(v, a.desc)) return true;
   }
   return false;
 }
 
-// Rótulo do botão: "Todas", o nome do item, ou os nomes separados por
+// Rótulo do botão: "Todas", o nome da categoria, ou os nomes separados por
 // vírgula com a quantidade entre parênteses (ex: "Fibra, Retrofit (2)").
 // O selo branco ao lado mostra quantas atividades a seleção reúne.
 function atualizarLabelAtividade(){
@@ -1029,23 +905,46 @@ function atualizarLabelAtividade(){
     return;
   }
   badge.textContent = fmtInt(casam);
-  const nomes = [...selectedAtividades].map(v=> { const it = buscarItemAtividade(v); return it ? it.nome : v; });
+  const nomes = atividadeCats.filter(c=> selectedAtividades.has(c.value)).map(c=> c.nome);
   if(nomes.length===1) msAtividadeLabel.textContent = nomes[0];
   else if(nomes.length<=3) msAtividadeLabel.textContent = nomes.join(', ')+' ('+nomes.length+')';
   else msAtividadeLabel.textContent = nomes.length+' selecionadas';
 }
 
+// O painel fica preso à janela (position: fixed) logo abaixo do botão e
+// nunca passa da borda de baixo: a lista rola por dentro e "Limpar" /
+// "Aplicar" ficam sempre visíveis. Se não couber inteiro embaixo e houver
+// mais espaço em cima, abre para cima.
+function posicionarFiltroAtividade(){
+  const r = msAtividadeBtn.getBoundingClientRect();
+  const margem = 12;
+  const largura = Math.min(340, window.innerWidth - 2*margem);
+  const left = Math.max(margem, Math.min(r.left, window.innerWidth - largura - margem));
+  const abaixo = window.innerHeight - r.bottom - 8 - margem;
+  const acima = r.top - 8 - margem;
+  msAtividadePanel.style.left = left+'px';
+  msAtividadePanel.style.width = largura+'px';
+  msAtividadePanel.style.maxHeight = 'none';
+  const alturaNatural = msAtividadePanel.offsetHeight;
+  if(alturaNatural <= abaixo || abaixo >= acima){
+    msAtividadePanel.style.top = (r.bottom + 8)+'px';
+    msAtividadePanel.style.bottom = '';
+    msAtividadePanel.style.maxHeight = abaixo+'px';
+  } else {
+    msAtividadePanel.style.top = '';
+    msAtividadePanel.style.bottom = (window.innerHeight - r.top + 8)+'px';
+    msAtividadePanel.style.maxHeight = acima+'px';
+  }
+}
+
 function abrirFiltroAtividade(abrir){
   msAtividade.classList.toggle('open', abrir);
   msAtividadeBtn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
-  if(abrir){
-    // A barra lateral fica fixa na tela: a lista encolhe para o painel
-    // (com "Limpar"/"Aplicar") caber até a borda de baixo da janela.
-    msAtividadeList.style.maxHeight = '';
-    const sobra = window.innerHeight - 12 - msAtividadePanel.getBoundingClientRect().bottom;
-    if(sobra < 0) msAtividadeList.style.maxHeight = Math.max(160, msAtividadeList.offsetHeight + sobra)+'px';
-  }
+  if(abrir) posicionarFiltroAtividade();
 }
+['resize','scroll'].forEach(ev=> window.addEventListener(ev, ()=>{
+  if(msAtividade.classList.contains('open')) posicionarFiltroAtividade();
+}, {passive:true}));
 
 msAtividadeAll.addEventListener('change', ()=>{
   if(msAtividadeAll.checked){

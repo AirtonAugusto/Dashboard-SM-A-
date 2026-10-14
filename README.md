@@ -96,10 +96,12 @@ O painel tem duas abas:
 - Tabelas de atividades concluídas, com observações/pendências e com
   justificativas (respeitam os filtros).
 - Filtros de período, local, situação do prazo e atividade — o filtro
-  "Atividade" tem tanto as descrições individuais quanto categorias
-  gerais (ex: "Fibra", "Retrofit") que reúnem várias descrições
-  parecidas no mesmo lugar; para adicionar uma categoria nova, edite o
-  objeto `CATEGORIAS` no `<script>` de `template.html`.
+  "Atividade" funciona como um slicer do Power BI: mostra só categorias
+  gerais (ex: "Fibra", "Retrofit"), e marcar uma traz todas as
+  atividades daquela categoria. O que não cai em nenhuma categoria vai
+  para "Outras". Para adicionar uma categoria nova, edite o objeto
+  `CATEGORIAS` no `<script>` de `template.html`.
+- Botão Claro/Escuro no topo (sem escolha, segue o tema do aparelho).
 
 ### Calendário (3 semanas)
 
