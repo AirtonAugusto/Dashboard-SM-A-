@@ -650,16 +650,14 @@ aplicarTema(temaAtual());
 // Categorias do filtro "Atividade" (igual a um slicer do Power BI): cada
 // categoria reúne toda descrição que contém uma das palavras-chave
 // (substring, sem diferenciar maiúscula/minúscula). Uma atividade pode
-// cair em mais de uma categoria (ex: "fibra de detecção de arco" entra em
-// Fibra e em Detecção de Arco). O que não bate com nenhuma vai para
+// cair em mais de uma categoria. O que não bate com nenhuma vai para
 // "Outras". Para criar uma categoria nova, é só acrescentar uma linha aqui.
 const CATEGORIAS = {
-  'Fibra': ['fibra'],
+  'Fibra': ['fibra', 'arco'], // inclui detecção de arco
   'Retrofit': ['retrofit'],
   'Comissionamento': ['comissionamento'],
   'Diagrama': ['diagrama'],
   "Falta de fase nos TP's": ['falta de fase'],
-  'Detecção de Arco': ['arco'],
   'Manutenção preventiva': ['preventiva'],
   'Aterramento': ['aterramento'],
   'Disjuntor': ['disjuntor'],
